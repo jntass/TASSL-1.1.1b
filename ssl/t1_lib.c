@@ -569,6 +569,13 @@ int tls1_check_group_id(SSL *s, uint16_t group_id, int check_own_groups)
      */
     if (groups_len == 0)
             return 1;
+	
+#ifndef OPENSSL_NO_CNSM
+    if(group_id == 249 && SM2_group_id_custom != 249 && SM2_group_id_custom > 0){
+        group_id = SM2_group_id_custom;
+    }
+#endif
+
     return tls1_in_list(group_id, groups, groups_len);
 }
 
