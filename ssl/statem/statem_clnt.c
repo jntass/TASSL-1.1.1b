@@ -32,6 +32,12 @@ static int key_exchange_expected(SSL *s);
 static int ssl_cipher_list_to_bytes(SSL *s, STACK_OF(SSL_CIPHER) *sk,
                                     WPACKET *pkt);
 
+#ifndef OPENSSL_NO_CNSM
+
+int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret);
+uint16_t tls1_nid2group_id(int nid);
+
+#endif
 /*
  * Is a CertificateRequest message allowed at the moment or not?
  *
@@ -2271,14 +2277,10 @@ MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
     EVP_PKEY_CTX *pctx = NULL;
     PACKET save_param_start, signature;
     #ifndef OPENSSL_NO_CNSM
-    EC_KEY *ecdh = NULL;
     BUF_MEM *sm2_certs = NULL;
-    long alg_a = 0,param_len = 0;
+    long alg_a = 0;
     size_t sm2_certs_len = 0;
-    BN_CTX *bn_ctx = NULL;
-    EC_POINT *srvr_ecpoint = NULL;
-    int encoded_pt_len = 0;
-    unsigned char *p = NULL;
+    EVP_PKEY_CTX *engine_pctx = NULL;
     #endif
  
     alg_k = s->s3->tmp.new_cipher->algorithm_mkey;
@@ -2324,8 +2326,12 @@ MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
 #ifndef OPENSSL_NO_CNSM	
     } else if (alg_k & SSL_kECC) {
     	alg_a = s->s3->tmp.new_cipher->algorithm_auth;
-        if (alg_a & SSL_aSM2DSA)
+        if (alg_a & SSL_aSM2DSA){
             pkey = X509_get_pubkey((sk_X509_value(s->session->peer_chain,0)));
+            engine_pctx = EVP_PKEY_CTX_new_pkey_id(pkey, NID_sm2, NULL);
+            EVP_PKEY_verify_init(engine_pctx);
+          }
+	     
         else {
             SSLerr(SSL_F_TLS_PROCESS_KEY_EXCHANGE, ERR_R_INTERNAL_ERROR);
             goto err;
@@ -2456,6 +2462,11 @@ MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
             /* SSLfatal() already called */
             goto err;
         }
+#ifndef OPENSSL_NO_CNSM
+        if(engine_pctx){
+            EVP_MD_CTX_set_pkey_ctx(md_ctx, engine_pctx);
+        }
+#endif
 
         rv = EVP_DigestVerify(md_ctx, PACKET_data(&signature),
                               PACKET_remaining(&signature), tbs, tbslen);
@@ -2465,6 +2476,16 @@ MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
                      SSL_R_BAD_SIGNATURE);
             goto err;
         }
+#ifndef OPENSSL_NO_CNSM
+        if(alg_k & SSL_kECC){
+            if(sm2_certs)
+                BUF_MEM_free(sm2_certs);
+            if(pkey)
+                EVP_PKEY_free(pkey);
+            if(engine_pctx)
+                EVP_PKEY_CTX_free(engine_pctx);
+    	}
+#endif
         EVP_MD_CTX_free(md_ctx);
         md_ctx = NULL;
     } else {
@@ -2489,6 +2510,16 @@ MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
 
     return MSG_PROCESS_CONTINUE_READING;
  err:
+#ifndef OPENSSL_NO_CNSM
+    if(alg_k & SSL_kECC){
+        if(sm2_certs)
+            BUF_MEM_free(sm2_certs);
+        if(pkey)
+            EVP_PKEY_free(pkey);
+        if(engine_pctx)
+        	EVP_PKEY_CTX_free(engine_pctx);
+    }
+#endif
     EVP_MD_CTX_free(md_ctx);
     return MSG_PROCESS_ERROR;
 }
@@ -3217,7 +3248,6 @@ static int tls_construct_cke_sm2dh(SSL *s, WPACKET *pkt)
     EVP_PKEY *ckey = NULL, *skey = NULL;
     int ret = 0;
     uint16_t curve_id = 0;
-    EVP_MD *md = NULL;
 
     skey = s->s3->peer_tmp;
     if (skey == NULL) {

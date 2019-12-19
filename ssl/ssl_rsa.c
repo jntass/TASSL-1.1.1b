@@ -20,6 +20,8 @@ static int ssl_set_cert(CERT *c, X509 *x509);
 static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey);
 #ifndef OPENSSL_NO_CNSM
 static int ssl_set_enc_pkey(CERT *c, EVP_PKEY *pkey);
+int ssl_cert_type(X509 *x, EVP_PKEY *pkey);
+int ssl_cert_inst(CERT **o);
 #endif
 
 #define  SYNTHV1CONTEXT     (SSL_EXT_TLS1_2_AND_BELOW_ONLY \
@@ -714,6 +716,12 @@ int SSL_CTX_use_enc_PrivateKey_file(SSL_CTX *ctx, const char *file, int type)
 end:
     if (in != NULL) BIO_free(in);
     return(ret);
+}
+
+int SSL_set_sm2_group_id_custom(uint16_t id)
+{
+   return set_sm2_group_id_custom(id);
+
 }
 #endif
 int SSL_CTX_use_PrivateKey_ASN1(int type, SSL_CTX *ctx,

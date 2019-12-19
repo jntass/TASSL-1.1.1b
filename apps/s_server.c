@@ -1681,7 +1681,7 @@ int s_server_main(int argc, char *argv[])
     if (s_key_file == NULL)
         s_key_file = s_cert_file;
 #ifndef OPENSSL_NO_CNSM
-    if (enc_flag!= 2 && s_key_enc_file == NULL)
+    if (enc_flag != 2 && s_key_enc_file == NULL)
         s_key_enc_file = s_cert_enc_file;
 #endif
 

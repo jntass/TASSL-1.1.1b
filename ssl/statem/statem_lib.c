@@ -233,6 +233,8 @@ int tls_construct_cert_verify(SSL *s, WPACKET *pkt)
     unsigned char *sig = NULL;
     unsigned char tls13tbs[TLS13_TBS_PREAMBLE_SIZE + EVP_MAX_MD_SIZE];
     const SIGALG_LOOKUP *lu = s->s3->tmp.sigalg;
+    unsigned char cert_verify_md[32];
+    EVP_MD_CTX *md_ctx;
 
     if (lu == NULL || s->s3->tmp.cert == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CERT_VERIFY,
@@ -261,8 +263,7 @@ int tls_construct_cert_verify(SSL *s, WPACKET *pkt)
     }
     
     #ifndef OPENSSL_NO_CNSM
-    unsigned char cert_verify_md[32];
-    EVP_MD_CTX *md_ctx;
+    
     
     md_ctx = EVP_MD_CTX_new();
     if(s->s3->tmp.new_cipher->id == TLS1_CK_ECC_WITH_SM4_SM3 || s->s3->tmp.new_cipher->id == TLS1_CK_ECDHE_WITH_SM4_SM3 ){
@@ -380,6 +381,12 @@ MSG_PROCESS_RETURN tls_process_cert_verify(SSL *s, PACKET *pkt)
 #ifndef OPENSSL_NO_GOST
     unsigned char *gost_data = NULL;
 #endif
+
+#ifndef OPENSSL_NO_CNSM
+		unsigned char cert_verify_md[32];
+    EVP_MD_CTX *md_ctx;
+#endif
+
     MSG_PROCESS_RETURN ret = MSG_PROCESS_ERROR;
     int j;
     unsigned int len;
@@ -481,8 +488,7 @@ MSG_PROCESS_RETURN tls_process_cert_verify(SSL *s, PACKET *pkt)
     }
     
     #ifndef OPENSSL_NO_CNSM
-    unsigned char cert_verify_md[32];
-    EVP_MD_CTX *md_ctx;
+    
     
     md_ctx = EVP_MD_CTX_new();
     

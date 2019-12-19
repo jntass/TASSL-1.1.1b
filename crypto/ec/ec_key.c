@@ -546,10 +546,19 @@ size_t ec_key_simple_priv2oct(const EC_KEY *eckey,
     buf_len = (EC_GROUP_order_bits(eckey->group) + 7) / 8;
     if (eckey->priv_key == NULL)
         return 0;
+
+#ifndef OPENSSL_NO_CNSM                     //add by gujq on 20190830 for tasshsm engine v0.6
+    if(EC_KEY_get_flags((EC_KEY*)eckey) & EC_FLAG_TASSHSM_ENGINE){
+	    	char *lmk_pri  = BN_bn2hex(EC_KEY_get0_private_key(eckey));
+		buf_len = buf_len>strlen(lmk_pri)/2? buf_len: strlen(lmk_pri)/2;
+    }
+#endif
+
     if (buf == NULL)
         return buf_len;
     else if (len < buf_len)
         return 0;
+
 
     /* Octetstring may need leading zeros if BN is to short */
 

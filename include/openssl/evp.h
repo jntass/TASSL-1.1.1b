@@ -420,6 +420,12 @@ typedef int (EVP_PBE_KEYGEN) (EVP_CIPHER_CTX *ctx, const char *pass,
 #  define EVP_PKEY_assign_EC_KEY(pkey,eckey) EVP_PKEY_assign((pkey),EVP_PKEY_EC,\
                                         (char *)(eckey))
 # endif
+
+# ifndef OPENSSL_NO_CNSM
+#  define EVP_PKEY_assign_SM2_KEY(pkey,eckey) EVP_PKEY_assign((pkey),EVP_PKEY_SM2,\
+                                        (char *)(eckey))
+# endif
+
 # ifndef OPENSSL_NO_SIPHASH
 #  define EVP_PKEY_assign_SIPHASH(pkey,shkey) EVP_PKEY_assign((pkey),EVP_PKEY_SIPHASH,\
                                         (char *)(shkey))
@@ -985,6 +991,9 @@ int EVP_PKEY_encrypt_old(unsigned char *enc_key,
                          const unsigned char *key, int key_len,
                          EVP_PKEY *pub_key);
 int EVP_PKEY_type(int type);
+#ifndef OPENSSL_NO_CNSM
+ENGINE * EVP_PKEY_pmeth_engine(const EVP_PKEY *pkey);
+#endif
 int EVP_PKEY_id(const EVP_PKEY *pkey);
 int EVP_PKEY_base_id(const EVP_PKEY *pkey);
 int EVP_PKEY_bits(const EVP_PKEY *pkey);

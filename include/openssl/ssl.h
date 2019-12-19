@@ -1595,8 +1595,11 @@ __owur int SSL_CTX_use_RSAPrivateKey_file(SSL_CTX *ctx, const char *file,
 __owur int SSL_CTX_use_PrivateKey_file(SSL_CTX *ctx, const char *file,
                                        int type);
 #ifndef OPENSSL_NO_CNSM
+__owur int SSL_CTX_use_enc_PrivateKey(SSL_CTX *ctx, EVP_PKEY *pkey);
 __owur int SSL_CTX_use_enc_PrivateKey_file(SSL_CTX *ctx, const char *file,
                                        int type);
+__owur int SSL_set_sm2_group_id_custom(uint16_t id);
+
 #endif
 __owur int SSL_CTX_use_certificate_file(SSL_CTX *ctx, const char *file,
                                         int type);

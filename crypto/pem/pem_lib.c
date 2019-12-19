@@ -135,6 +135,12 @@ static int check_pem(const char *nm, const char *name)
             return 1;
         if (strcmp(nm, PEM_STRING_PKCS8INF) == 0)
             return 1;
+#ifndef OPENSSL_NO_CNSM					//add by gujq on 20190830 for tasshsm engine v 0.6
+        if(strcmp(nm, PEM_STRING_TASSHSM_ECPRIVATEKEY) ==0)
+            return 1;
+	if(strcmp(nm, PEM_STRING_TASSCARD_ECPRIVATEKEY) ==0)
+            return 1;
+#endif
         slen = pem_check_suffix(nm, "PRIVATE KEY");
         if (slen > 0) {
             /*
@@ -393,6 +399,17 @@ int PEM_ASN1_write_bio(i2d_of_void *i2d, const char *name, BIO *bp,
         ret = 1;
         buf[0] = '\0';
     }
+#ifndef OPENSSL_NO_CNSM					//add by gujq on 20190830 for tasshsm engine v0.6
+		if(strcmp(name, "EC PRIVATE KEY") == 0){
+			if(EC_KEY_get_flags((EC_KEY*)x) & EC_FLAG_TASSHSM_ENGINE){
+    		name = "TASSHSM EC PRIVATE KEY";
+    	}
+    	if(EC_KEY_get_flags((EC_KEY*)x) & EC_FLAG_TASSCARD_ENGINE){
+    		name = "TASSCARD EC PRIVATE KEY";
+    	}
+    }
+#endif
+
     i = PEM_write_bio(bp, name, buf, data, i);
     if (i <= 0)
         ret = 0;

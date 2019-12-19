@@ -29,6 +29,7 @@
 #include "openssl/crypto.h"
 #include "openssl/ssl.h"
 #include "openssl/err.h"
+#include "openssl/evp.h"
 
 #define MAX_BUF_LEN 4096
 #define SM2_SERVER_CERT     "../cert/certs/SS.pem"
@@ -48,6 +49,7 @@
 #define RETURN_ERR(err,s) if ((err)==-1) { perror(s); exit(1); }
 #define RETURN_SSL(err) if ((err)==-1) { ERR_print_errors_fp(stderr); exit(1); }
 int opt = 1;
+
 
 void ShowCerts(SSL * ssl)
 {
@@ -136,7 +138,8 @@ int main(int argc, char **argv)
 
 	/* Create a SSL_METHOD structure (choose a SSL/TLS protocol version) */
 	meth = SSLv23_server_method();
-//	set_sm2_group_id_custom(29);
+	//SSL_set_sm2_group_id_custom(29);
+	/*SSL_set_sm2_group_id_custom(59);*/
 
 	/* Create a SSL_CTX structure */
 	ctx = SSL_CTX_new(meth);
@@ -285,8 +288,6 @@ int main(int argc, char **argv)
 			printf("ssl_read fail!\n");
 			break;
 		}
-		
-		printf("the buf =[%s]\n", buf);
 		break;
 	}
 
@@ -298,8 +299,8 @@ int main(int argc, char **argv)
 
 	/* Send data to the SSL client */
 	err = SSL_write(ssl,
-		"-----This message is from the SSL server-----\n", 
-		strlen("-----This message is from the SSL server-----\n"));
+		"-----This message is from the SSL server-----", 
+		strlen("-----This message is from the SSL server-----"));
 
 	RETURN_SSL(err);
 

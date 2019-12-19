@@ -59,8 +59,31 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <openssl/evp.h>
-#include <openssl/ec.h>
+#include "openssl/evp.h"
+#include "openssl/ec.h"
+
+
+int b2s(char *bin, char *outs)
+{
+        int i = 0;
+        char tmpbuf[4];
+        int iRet = 0;
+        char *ptr = bin;
+        for(i = 0; i<strlen(bin)/2; i++){
+                memset(tmpbuf, 0x00, sizeof(tmpbuf));
+                memcpy(tmpbuf, ptr, 2);
+                ptr += 2;
+                iRet = strtol(tmpbuf, NULL, 16);
+                #ifndef NO_DEBUG
+                //printf("the iRet =[%d]\n", iRet);
+                #endif
+
+                memset(outs++, iRet, 1);
+        }
+        return i;
+}
+
+
 
 EC_KEY *CalculateKey(const EC_GROUP *ec_group, const char *privkey_hex_string)
 {
@@ -176,7 +199,7 @@ int main(int argc, char *argv[])
 			goto err;
 		}
         
-    	EVP_PKEY_assign_EC_KEY(sm2key, tmp);
+    	EVP_PKEY_assign_SM2_KEY(sm2key, tmp);
     	
     	pctx = EVP_PKEY_CTX_new(sm2key, NULL);
     	if (!pctx)
@@ -237,7 +260,7 @@ int main(int argc, char *argv[])
 			goto err;
 		}
         
-    	EVP_PKEY_assign_EC_KEY(sm2key, tmp);
+    	EVP_PKEY_assign_SM2_KEY(sm2key, tmp);
     	        
     	pctx = EVP_PKEY_CTX_new(sm2key, NULL);
     	if (!pctx)
@@ -262,7 +285,8 @@ int main(int argc, char *argv[])
         	goto err;
     	}
 
-    	hex2bin((const unsigned char *)argv[3], inlen * 2, in);
+    	//hex2bin((const unsigned char *)argv[3], inlen * 2, in);
+	b2s(argv[3], in);
 
     	/*Set sm2 encdata format, 0 for ASN1(default), 1 for C1C3C2*/
     	/*EVP_PKEY_CTX_set_sm2_encdata_format(ctx, 1);*/
@@ -275,7 +299,7 @@ int main(int argc, char *argv[])
         	goto err;
     	}
     	
-		out = OPENSSL_malloc(outlen + 2);
+		out = OPENSSL_malloc(outlen);
 		if (!out)
 		{
     		OPENSSL_free(in);
@@ -283,7 +307,7 @@ int main(int argc, char *argv[])
 			goto err;
 		}
 
-		memset(out, 0, outlen + 2);
+		memset(out, 0, outlen);
     	if (EVP_PKEY_decrypt(pctx, out, &outlen, (const unsigned char *)in, inlen) < 0)
 		{
     		OPENSSL_free(in);
@@ -291,6 +315,7 @@ int main(int argc, char *argv[])
 			/*Your Can't get error detail*/
 			goto err;
 		}
+		out[outlen] = '\0';
         
 		printf("[%s] SM2 Decrypt plain Text:\n\tLength: [%ld]\n\tContent: [%s]\n", argv[3], outlen, (char *)out);
 		/*for (retval = 0; retval < outlen; retval++)

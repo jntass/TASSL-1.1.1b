@@ -11,6 +11,12 @@
 #include "ec_lcl.h"
 #include <openssl/err.h>
 
+#ifndef OPENSSL_NO_CNSM
+
+int sm2_verify(const unsigned char *dgst, int dgstlen, const unsigned char *sig, int sig_len, EC_KEY *eckey);
+
+#endif
+
 /*-
  * returns
  *      1: correct signature

@@ -61,7 +61,7 @@ Written by caichenghang for the TaSSL project.
 #include <string.h>
 #include "openssl/ec.h"
 #include "openssl/evp.h"
-#include "sm/sm2.h"
+#include "openssl/sm2.h"
 
 #ifndef GU_NO_DEBUG
 #define DEBUG_CHAR_HEX(buf_ptr, buf_len) \

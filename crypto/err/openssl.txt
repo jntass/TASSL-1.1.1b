@@ -1092,6 +1092,7 @@ SM2_F_PKEY_SM2_CTRL:109:pkey_sm2_ctrl
 SM2_F_PKEY_SM2_CTRL_STR:110:pkey_sm2_ctrl_str
 SM2_F_PKEY_SM2_DIGEST_CUSTOM:114:pkey_sm2_digest_custom
 SM2_F_PKEY_SM2_INIT:111:pkey_sm2_init
+SM2_F_PKEY_SM2_KEYGEN:118:pkey_sm2_keygen
 SM2_F_PKEY_SM2_SIGN:112:pkey_sm2_sign
 SM2_F_SM2KAP_COMPUTE_KEY:117:SM2Kap_compute_key
 SM2_F_SM2_COMPUTE_MSG_HASH:100:sm2_compute_msg_hash

@@ -60,9 +60,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
-#include <openssl/crypto.h>
-#include <openssl/evp.h>
-#include <openssl/sm2.h>
+#include "openssl/crypto.h"
+#include "openssl/evp.h"
+#include "openssl/sm2.h"
 
 /*TEST KAP*/
 

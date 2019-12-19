@@ -42,6 +42,35 @@ static int pkey_sm2_init(EVP_PKEY_CTX *ctx)
     return 1;
 }
 
+#ifndef OPENSSL_NO_CNSM
+static int pkey_sm2_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
+{
+    EC_KEY *ec = NULL;
+    SM2_PKEY_CTX *dctx = ctx->data;
+    int ret;
+
+    if (ctx->pkey == NULL && dctx->gen_group == NULL) {
+        SM2err(SM2_F_PKEY_SM2_KEYGEN, EC_R_NO_PARAMETERS_SET);
+        return 0;
+    }
+    ec = EC_KEY_new();
+    if (ec == NULL)
+        return 0;
+    if (!ossl_assert(EVP_PKEY_assign_EC_KEY(pkey, ec))) {
+        EC_KEY_free(ec);
+        return 0;
+    }
+    /* Note: if error is returned, we count on caller to free pkey->pkey.ec */
+    if (ctx->pkey != NULL)
+        ret = EVP_PKEY_copy_parameters(pkey, ctx->pkey);
+    else
+        ret = EC_KEY_set_group(ec, dctx->gen_group);
+
+    return ret ? EC_KEY_generate_key(ec) : 0;
+}
+
+#endif
+
 static void pkey_sm2_cleanup(EVP_PKEY_CTX *ctx)
 {
     SM2_PKEY_CTX *smctx = ctx->data;
@@ -294,11 +323,13 @@ const EVP_PKEY_METHOD sm2_pkey_meth = {
     0,
 
     0,
+#ifndef OPENSSL_NO_CNSM
+    pkey_sm2_keygen,
+#else
     0,
-
+#endif
     0,
     pkey_sm2_sign,
-
     0,
     pkey_sm2_verify,
 

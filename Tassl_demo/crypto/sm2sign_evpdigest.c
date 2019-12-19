@@ -59,8 +59,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <openssl/evp.h>
-#include <openssl/ec.h>
+#include "openssl/evp.h"
+#include "openssl/ec.h"
 
 int main(int argc, char *argv[])
 {

@@ -4743,6 +4743,13 @@ EVP_PKEY *ssl_generate_pkey(EVP_PKEY *pm)
 
     if (pm == NULL)
         return NULL;
+#ifndef OPENSSL_NO_CNSM
+    ENGINE *tmp_e = NULL;
+    tmp_e = ENGINE_get_pkey_meth_engine(NID_sm2);
+    if(tmp_e)
+        pctx = EVP_PKEY_CTX_new(pm, tmp_e);
+    else
+#endif
     pctx = EVP_PKEY_CTX_new(pm, NULL);
     if (pctx == NULL)
         goto err;
@@ -4754,6 +4761,8 @@ EVP_PKEY *ssl_generate_pkey(EVP_PKEY *pm)
     }
 
     err:
+    if(tmp_e)
+        ENGINE_free(tmp_e);
     EVP_PKEY_CTX_free(pctx);
     return pkey;
 }
@@ -4766,6 +4775,10 @@ EVP_PKEY *ssl_generate_pkey_group(SSL *s, uint16_t id)
     const TLS_GROUP_INFO *ginf = tls1_group_id_lookup(id);
     uint16_t gtype;
 
+#ifndef OPENSSL_NO_CNSM
+    ENGINE *e_tmp = NULL;
+#endif
+   
     if (ginf == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_GROUP,
                  ERR_R_INTERNAL_ERROR);
@@ -4773,7 +4786,18 @@ EVP_PKEY *ssl_generate_pkey_group(SSL *s, uint16_t id)
     }
     gtype = ginf->flags & TLS_CURVE_TYPE;
     if (gtype == TLS_CURVE_CUSTOM)
-        pctx = EVP_PKEY_CTX_new_id(ginf->nid, NULL);
+        pctx = EVP_PKEY_CTX_new_id(ginf->nid, NULL); 
+#ifndef OPENSSL_NO_CNSM
+    else if(s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey){
+    	  e_tmp = EVP_PKEY_pmeth_engine(s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey);
+        if(e_tmp){
+            pctx = EVP_PKEY_CTX_new_id(ginf->nid, e_tmp);
+	     gtype |= TLS_CURVE_CUSTOM;
+        }
+	else
+	    pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC  , NULL);
+      }       
+#endif
     else
         pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL);
     if (pctx == NULL) {
@@ -4786,12 +4810,20 @@ EVP_PKEY *ssl_generate_pkey_group(SSL *s, uint16_t id)
                  ERR_R_EVP_LIB);
         goto err;
     }
+
     if (gtype != TLS_CURVE_CUSTOM
             && EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pctx, ginf->nid) <= 0) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_GROUP,
                  ERR_R_EVP_LIB);
         goto err;
     }
+#ifndef OPENSSL_NO_CNSM
+    else if (e_tmp && EVP_PKEY_CTX_set_sm2_paramgen_curve_nid(pctx, ginf->nid) <= 0) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_GROUP,
+                 ERR_R_EVP_LIB);
+        goto err;
+    }
+#endif
     if (EVP_PKEY_keygen(pctx, &pkey) <= 0) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_GENERATE_PKEY_GROUP,
                  ERR_R_EVP_LIB);
@@ -4959,7 +4991,7 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
     EVP_PKEY_CTX *pctx = NULL;
     EC_PKEY_CTX *dctx = NULL;
     EVP_PKEY *srvr_pub_pkey = NULL;
-    EVP_MD *md = NULL;
+    const EVP_MD *md = NULL;
 
     if (privkey == NULL || pubkey == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_DERIVE_SM2,
@@ -5042,6 +5074,8 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
     }
 
  err:
+ 		if(srvr_pub_pkey)
+ 			EVP_PKEY_free(srvr_pub_pkey);
     OPENSSL_clear_free(pms, pmslen);
     EVP_PKEY_CTX_free(pctx);
     return rv;

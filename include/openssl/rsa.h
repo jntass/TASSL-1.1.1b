@@ -58,6 +58,9 @@ extern "C" {
 # define RSA_FLAG_CACHE_PRIVATE          0x0004
 # define RSA_FLAG_BLINDING               0x0008
 # define RSA_FLAG_THREAD_SAFE            0x0010
+#ifndef OPENSSL_NO_CNSM
+# define RSA_FLAG_TASSHSMRSA_ENGINE      0x1000
+#endif
 /*
  * This flag means the private key operations will be handled by rsa_mod_exp
  * and that they do not depend on the private key components being present:

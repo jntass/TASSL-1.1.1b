@@ -15,6 +15,12 @@
 #include "internal/evp_int.h"
 #include "evp_locl.h"
 
+#ifndef OPENSSL_NO_CNSM
+
+int sm2_compute_z_digest(uint8_t *out, const EVP_MD *digest, const uint8_t *id, const size_t id_len, const EC_KEY *key);
+
+#endif
+
 static int update(EVP_MD_CTX *ctx, const void *data, size_t datalen)
 {
     EVPerr(EVP_F_UPDATE, EVP_R_ONLY_ONESHOT_SUPPORTED);
@@ -83,7 +89,7 @@ static int do_sigver_init(EVP_MD_CTX *ctx, EVP_PKEY_CTX **pctx,
         {
             /*Need Set SM2 Sign And Verify Extra Data: Add Message Z*/
             unsigned char ex_dgst[EVP_MAX_MD_SIZE];
-            if (!sm2_compute_z_digest(ex_dgst, EVP_sm3(), "1234567812345678", strlen("1234567812345678"), ctx->pctx->pkey->pkey.ec))
+            if (!sm2_compute_z_digest(ex_dgst, EVP_sm3(), (const uint8_t *)"1234567812345678", strlen("1234567812345678"), ctx->pctx->pkey->pkey.ec))
                 return 0;
             if (!EVP_DigestUpdate(ctx, ex_dgst, 32))
                 return 0;

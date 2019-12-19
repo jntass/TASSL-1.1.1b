@@ -59,11 +59,11 @@ our %config = (
   openssl_sys_defines => [  ],
   openssl_thread_defines => [ "OPENSSL_THREADS" ],
   openssldir => "",
-  options => "--prefix=/root/tassl-1.1.1_lib no-asan no-crypto-mdebug no-crypto-mdebug-backtrace no-devcryptoeng no-ec_nistp_64_gcc_128 no-egd no-external-tests no-fuzz-afl no-fuzz-libfuzzer no-heartbeats no-md2 no-msan no-rc5 no-sctp no-ssl-trace no-ssl3 no-ssl3-method no-ubsan no-unit-test no-weak-ssl-ciphers no-zlib no-zlib-dynamic",
+  options => "--prefix=/root/lib_r/tassl no-asan no-crypto-mdebug no-crypto-mdebug-backtrace no-devcryptoeng no-ec_nistp_64_gcc_128 no-egd no-external-tests no-fuzz-afl no-fuzz-libfuzzer no-heartbeats no-md2 no-msan no-rc5 no-sctp no-ssl-trace no-ssl3 no-ssl3-method no-ubsan no-unit-test no-weak-ssl-ciphers no-zlib no-zlib-dynamic",
   perl_archname => "x86_64-linux-thread-multi",
   perl_cmd => "/usr/bin/perl",
-  perl_version => "5.10.1",
-  perlargv => [ "linux-x86_64", "--prefix=/root/tassl-1.1.1_lib" ],
+  perl_version => "5.16.3",
+  perlargv => [ "linux-x86_64", "--prefix=/root/lib_r/tassl" ],
   perlenv => {
       "AR" => undef,
       "ARFLAGS" => undef,
@@ -100,7 +100,7 @@ our %config = (
       "__CNF_LDFLAGS" => "",
       "__CNF_LDLIBS" => "",
   },
-  prefix => "/root/tassl-1.1.1_lib",
+  prefix => "/root/lib_r/tassl",
   processor => "",
   rc4_int => "unsigned int",
   sdirs => [ "objects", "md4", "md5", "sha", "mdc2", "hmac", "ripemd", "whrlpool", "poly1305", "blake2", "siphash", "sm3", "des", "aes", "rc2", "rc4", "idea", "aria", "bf", "cast", "camellia", "seed", "sm4", "chacha", "modes", "bn", "ec", "rsa", "dsa", "dh", "sm2", "dso", "engine", "buffer", "bio", "stack", "lhash", "rand", "err", "evp", "asn1", "pem", "x509", "x509v3", "conf", "txt_db", "pkcs7", "pkcs12", "comp", "ocsp", "ui", "cms", "ts", "srp", "cmac", "ct", "async", "kdf", "store" ],
@@ -229,6 +229,7 @@ our @disablables = (
   "chacha",
   "cmac",
   "cms",
+  "cnsm",
   "comp",
   "crypto-mdebug",
   "crypto-mdebug-backtrace",
@@ -1084,6 +1085,21 @@ our %unified_info = (
                     "libssl",
                 ],
             "test/buildtest_sha" =>
+                [
+                    "libcrypto",
+                    "libssl",
+                ],
+            "test/buildtest_sm2" =>
+                [
+                    "libcrypto",
+                    "libssl",
+                ],
+            "test/buildtest_sm3" =>
+                [
+                    "libcrypto",
+                    "libssl",
+                ],
+            "test/buildtest_sm4" =>
                 [
                     "libcrypto",
                     "libssl",
@@ -4524,6 +4540,21 @@ our %unified_info = (
                 [
                     "test/generate_buildtest.pl",
                     "sha",
+                ],
+            "test/buildtest_sm2.c" =>
+                [
+                    "test/generate_buildtest.pl",
+                    "sm2",
+                ],
+            "test/buildtest_sm3.c" =>
+                [
+                    "test/generate_buildtest.pl",
+                    "sm3",
+                ],
+            "test/buildtest_sm4.c" =>
+                [
+                    "test/generate_buildtest.pl",
+                    "sm4",
                 ],
             "test/buildtest_srp.c" =>
                 [
@@ -9695,6 +9726,18 @@ our %unified_info = (
                 [
                     "include",
                 ],
+            "test/buildtest_sm2.o" =>
+                [
+                    "include",
+                ],
+            "test/buildtest_sm3.o" =>
+                [
+                    "include",
+                ],
+            "test/buildtest_sm4.o" =>
+                [
+                    "include",
+                ],
             "test/buildtest_srp.o" =>
                 [
                     "include",
@@ -10351,6 +10394,9 @@ our %unified_info = (
             "test/buildtest_safestack",
             "test/buildtest_seed",
             "test/buildtest_sha",
+            "test/buildtest_sm2",
+            "test/buildtest_sm3",
+            "test/buildtest_sm4",
             "test/buildtest_srp",
             "test/buildtest_srtp",
             "test/buildtest_ssl",
@@ -15024,6 +15070,30 @@ our %unified_info = (
             "test/buildtest_sha.o" =>
                 [
                     "test/buildtest_sha.c",
+                ],
+            "test/buildtest_sm2" =>
+                [
+                    "test/buildtest_sm2.o",
+                ],
+            "test/buildtest_sm2.o" =>
+                [
+                    "test/buildtest_sm2.c",
+                ],
+            "test/buildtest_sm3" =>
+                [
+                    "test/buildtest_sm3.o",
+                ],
+            "test/buildtest_sm3.o" =>
+                [
+                    "test/buildtest_sm3.c",
+                ],
+            "test/buildtest_sm4" =>
+                [
+                    "test/buildtest_sm4.o",
+                ],
+            "test/buildtest_sm4.o" =>
+                [
+                    "test/buildtest_sm4.c",
                 ],
             "test/buildtest_srp" =>
                 [

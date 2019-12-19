@@ -402,7 +402,8 @@ int kdf_gmt003_2012(unsigned char *out, size_t outlen, const unsigned char *Z, s
     size_t mdlen;
     int retval = 0;
 
-    if (!out || !outlen) return retval;
+    if (!out || !outlen)
+    	return retval;
     if (md == NULL) md = EVP_sm3();
     mdlen = EVP_MD_size(md);
     mctx = EVP_MD_CTX_new();

@@ -817,6 +817,13 @@ int ECPKParameters_print_fp(FILE *fp, const EC_GROUP *x, int off);
 # define EC_FLAG_NON_FIPS_ALLOW  0x1
 # define EC_FLAG_FIPS_CHECKED    0x2
 # define EC_FLAG_COFACTOR_ECDH   0x1000
+#ifndef OPENSSL_NO_CNSM
+# define EC_FLAG_TASSHSM_ENGINE            0x10000
+# define EC_FLAG_TASSHSMRSA_ENGINE      0x20000
+# define EC_FLAG_TASSCARD_ENGINE       0x1000000
+
+#endif
+
 
 /** Creates a new EC_KEY object.
  *  \return EC_KEY object or NULL if an error occurred.
@@ -1377,6 +1384,12 @@ void EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
         EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, \
                                 EVP_PKEY_OP_PARAMGEN|EVP_PKEY_OP_KEYGEN, \
                                 EVP_PKEY_CTRL_EC_PARAMGEN_CURVE_NID, nid, NULL)
+#ifndef OPENSSL_NO_CNSM
+# define EVP_PKEY_CTX_set_sm2_paramgen_curve_nid(ctx, nid) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_SM2, \
+                                EVP_PKEY_OP_PARAMGEN|EVP_PKEY_OP_KEYGEN, \
+                                EVP_PKEY_CTRL_EC_PARAMGEN_CURVE_NID, nid, NULL)
+#endif
 
 # define EVP_PKEY_CTX_set_ec_param_enc(ctx, flag) \
         EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, \

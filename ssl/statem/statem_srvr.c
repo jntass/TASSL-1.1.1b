@@ -26,6 +26,13 @@
 
 #define TICKET_NONCE_SIZE       8
 
+
+#ifndef OPENSSL_NO_CNSM
+
+int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret);
+
+#endif
+
 static int tls_construct_encrypted_extensions(SSL *s, WPACKET *pkt);
 
 /*
@@ -2879,16 +2886,22 @@ int tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
             goto err;
           }
           
-        	if (!ssl_add_cert_to_buf(sm2_certs, &sm2_certs_len, (&s->cert->pkeys[SSL_PKEY_ECC_ENC])->x509))
-            goto err;
-        	tbslen = construct_key_exchange_tbs(s, &tbs, sm2_certs ? sm2_certs->data : NULL,
-                                            sm2_certs_len);
+        	if (!ssl_add_cert_to_buf(sm2_certs, &sm2_certs_len, (&s->cert->pkeys[SSL_PKEY_ECC_ENC])->x509)){
+        		if(sm2_certs){
+        		    BUF_MEM_free(sm2_certs);
+        		    goto err;
+        		}
+        	}
+           
+        	tbslen = construct_key_exchange_tbs(s, &tbs, sm2_certs ? sm2_certs->data : NULL, sm2_certs_len);
+        	if(sm2_certs){
+        	    BUF_MEM_free(sm2_certs);
+        	}
         }
         else{
-        	tbslen = construct_key_exchange_tbs(s, &tbs,
-                                            s->init_buf->data + paramoffset,
-                                            paramlen);
+        	tbslen = construct_key_exchange_tbs(s, &tbs, s->init_buf->data + paramoffset, paramlen);
         }
+      
         #else
         
         tbslen = construct_key_exchange_tbs(s, &tbs,
@@ -3091,21 +3104,6 @@ static int tls_process_cke_sm2ecc(SSL *s, PACKET *pkt)
                      SSL_R_LENGTH_MISMATCH);
             goto err;
         }
-    }
-			
-		/*
-     * We must not leak whether a decryption failure occurs because of
-     * Bleichenbacher's attack on PKCS #1 v1.5 RSA padding (see RFC 2246,
-     * section 7.4.7.1). The code follows that advice of the TLS RFC and
-     * generates a random premaster secret for the case that the decrypt
-     * fails. See https://tools.ietf.org/html/rfc5246#section-7.4.7.1
-     */
-
-    if (RAND_priv_bytes(rand_premaster_secret,
-                      sizeof(rand_premaster_secret)) <= 0) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_SM2ECC,
-                 ERR_R_INTERNAL_ERROR);
-        goto err;
     }
         
     /* EVP Decrypt Pre Master Secret Key */

@@ -389,7 +389,7 @@ list-tests:
 	@echo "Tests are not supported with your chosen Configure options"
 	@ : {- output_on() if !$disabled{tests}; "" -}
 
-install: install_sw install_ssldirs install_docs
+install: install_sw install_ssldirs install_docs install_tass
 
 uninstall: uninstall_docs uninstall_sw
 
@@ -447,6 +447,37 @@ install_docs: install_man_docs install_html_docs
 uninstall_docs: uninstall_man_docs uninstall_html_docs
 	$(RM) -r -v $(DESTDIR)$(DOCDIR)
 
+GEN_SM2_CERT_FILE=$(INSTALLTOP)/tassl_demo/cert/gen_sm2_cert
+SSL_MK_FILE=$(INSTALLTOP)/tassl_demo/ssl/mk
+CRYPTO_MK_FILE=$(INSTALLTOP)/tassl_demo/crypto/mk
+
+install_tass:
+	PWD1=`cd ${INSTALLTOP}; pwd`;\
+        PWD2=`cd ${INSTALLTOP}/../tassl; pwd`;\
+        if [ "$$PWD1" != "$$PWD2" ]; then rm -rf $(INSTALLTOP)/../tassl; ln -fs $(INSTALLTOP) $(INSTALLTOP)/../tassl; fi;
+	rm -rf $(GEN_SM2_CERT_FILE).sh
+	cp -R tassl_demo/ $(INSTALLTOP)/
+	mv $(GEN_SM2_CERT_FILE).tmpl $(GEN_SM2_CERT_FILE).sh
+	mv $(SSL_MK_FILE).tmpl $(SSL_MK_FILE).sh
+	mv $(CRYPTO_MK_FILE).tmpl $(CRYPTO_MK_FILE).sh
+
+	chmod u+x $(GEN_SM2_CERT_FILE).sh 
+	chmod u+x $(SSL_MK_FILE).sh 
+	chmod u+x $(CRYPTO_MK_FILE).sh 
+
+	sed -i '1i\CERT_DIR=$(INSTALLTOP)/tassl_demo/cert/' $(GEN_SM2_CERT_FILE).sh
+	sed -i '1i\OPENSSL_DIR=$(INSTALLTOP)' $(GEN_SM2_CERT_FILE).sh
+	sed -i '1i\export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(INSTALLTOP)/lib' $(GEN_SM2_CERT_FILE).sh
+	sed -i '1i\#!/bin/sh' $(GEN_SM2_CERT_FILE).sh
+
+	sed -i '1i\INC_DIR=$(INSTALLTOP)/include' $(SSL_MK_FILE).sh
+	sed -i '1i\LIB_DIR=$(INSTALLTOP)/lib'     $(SSL_MK_FILE).sh
+	sed -i '1i\#!/bin/sh'                     $(SSL_MK_FILE).sh
+
+	sed -i '1i\INC_DIR=$(INSTALLTOP)/include' $(CRYPTO_MK_FILE).sh
+	sed -i '1i\LIB_DIR=$(INSTALLTOP)/lib'     $(CRYPTO_MK_FILE).sh
+	sed -i '1i\#!/bin/sh'                     $(CRYPTO_MK_FILE).sh
+
 install_ssldirs:
 	@$(PERL) $(SRCDIR)/util/mkdir-p.pl $(DESTDIR)$(OPENSSLDIR)/certs
 	@$(PERL) $(SRCDIR)/util/mkdir-p.pl $(DESTDIR)$(OPENSSLDIR)/private
@@ -502,6 +533,7 @@ install_dev: install_runtime_libs
 	@chmod 644 $(DESTDIR)$(INSTALLTOP)/include/openssl/applink.c
 	@ : {- output_on() unless grep { $_ eq "OPENSSL_USE_APPLINK" } (@{$target{defines}}, @{$config{defines}}); "" -}
 	@set -e; for i in $(SRCDIR)/include/openssl/*.h \
+			  $(SRCDIR)/crypto/include/internal/sm*.h \
 			  $(BLDDIR)/include/openssl/*.h; do \
 		fn=`basename $$i`; \
 		$(ECHO) "install $$i -> $(DESTDIR)$(INSTALLTOP)/include/openssl/$$fn"; \

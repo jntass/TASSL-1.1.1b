@@ -9,6 +9,7 @@
 
 # This definition stops the following lines choking if HOME isn't
 # defined.
+openssl_conf = openssl_init
 HOME			= .
 
 # Extra OBJECT IDENTIFIER info:
@@ -221,7 +222,15 @@ authorityKeyIdentifier=keyid,issuer
 # Extensions to add to a certificate request
 
 basicConstraints = CA:FALSE
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+keyUsage = nonRepudiation, digitalSignature
+
+
+[ v3enc_req ]
+
+# Extensions to add to a certificate request
+
+basicConstraints = CA:FALSE
+keyUsage = keyAgreement, keyEncipherment, dataEncipherment
 
 [ v3_ca ]
 

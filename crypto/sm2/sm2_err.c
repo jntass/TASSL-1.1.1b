@@ -21,6 +21,7 @@ static const ERR_STRING_DATA SM2_str_functs[] = {
     {ERR_PACK(ERR_LIB_SM2, SM2_F_PKEY_SM2_DIGEST_CUSTOM, 0),
      "pkey_sm2_digest_custom"},
     {ERR_PACK(ERR_LIB_SM2, SM2_F_PKEY_SM2_INIT, 0), "pkey_sm2_init"},
+    {ERR_PACK(ERR_LIB_SM2, SM2_F_PKEY_SM2_KEYGEN, 0), "pkey_sm2_keygen"},
     {ERR_PACK(ERR_LIB_SM2, SM2_F_PKEY_SM2_SIGN, 0), "pkey_sm2_sign"},
     {ERR_PACK(ERR_LIB_SM2, SM2_F_SM2KAP_COMPUTE_KEY, 0), "SM2Kap_compute_key"},
     {ERR_PACK(ERR_LIB_SM2, SM2_F_SM2_COMPUTE_MSG_HASH, 0),

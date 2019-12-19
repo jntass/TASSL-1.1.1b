@@ -108,7 +108,14 @@ static EVP_PKEY_CTX *int_ctx_new(EVP_PKEY *pkey, ENGINE *e, int id)
     if (id == -1) {
         if (pkey == NULL)
             return 0;
+#ifndef OPENSSL_NO_CNSM
+	if(pkey->save_type == NID_sm2){
+            id = pkey->save_type;
+        }
+        else
+#endif
         id = pkey->type;
+
     }
 #ifndef OPENSSL_NO_ENGINE
     if (e == NULL && pkey != NULL)

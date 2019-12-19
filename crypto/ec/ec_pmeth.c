@@ -58,6 +58,15 @@ typedef struct {
 
 } EC_PKEY_CTX;
 
+#ifndef OPENSSL_NO_CNSM
+
+int SM2Kap_compute_key(void *out, size_t outlen, int server,\
+    const char *peer_uid, int peer_uid_len, const char *self_uid, int self_uid_len, \
+    const EC_KEY *peer_ecdhe_key, const EC_KEY *self_ecdhe_key, const EC_KEY *peer_pub_key, const EC_KEY *self_eckey, \
+    const EVP_MD *md);
+
+#endif
+
 static int pkey_ec_init(EVP_PKEY_CTX *ctx)
 {
     EC_PKEY_CTX *dctx;
@@ -227,9 +236,53 @@ static int pkey_ec_sm2dh_derive(EVP_PKEY_CTX *ctx, unsigned char *key,
     }
 
     outlen = *keylen;
+#ifdef TASSL_DEBUG
+    unsigned char *self_pub = NULL;
+    unsigned char *self_tmp_pub = NULL;
+    unsigned char *peer_pub = NULL;
+    unsigned char *peer_tmp_pub = NULL;
+    int i = 0;
+    
+    printf("self_pub:");
+    EC_KEY_key2buf(ctx->pkey->pkey.ec, EC_KEY_get_conv_form(ctx->pkey->pkey.ec), &self_pub, NULL);
+    for(i=0; i<65; i++){
+    	printf("%02X", *(self_pub+i));
+    }
+    printf("\n");
+    
+    printf("self_tmp_pub:");
+    EC_KEY_key2buf(dctx->self_ecdhe_key, EC_KEY_get_conv_form(dctx->self_ecdhe_key), &self_tmp_pub, NULL);
+    for(i=0; i<65; i++){
+    	printf("%02X", *(self_tmp_pub+i));
+    }
+    printf("\n");
+    
+    printf("peer_pub:");
+    EC_KEY_key2buf(ctx->peerkey->pkey.ec, EC_KEY_get_conv_form(ctx->peerkey->pkey.ec), &peer_pub, NULL);
+    for(i=0; i<65; i++){
+    	printf("%02X", *(peer_pub+i));
+    }
+    printf("\n");
+    
+    printf("peer_tmp_pub:");
+    EC_KEY_key2buf(dctx->peer_ecdhe_key, EC_KEY_get_conv_form(dctx->peer_ecdhe_key), &peer_tmp_pub, NULL);
+    for(i=0; i<65; i++){
+    	printf("%02X", *(peer_tmp_pub+i));
+    }
+    printf("\n");
+    
+#endif
     ret = SM2Kap_compute_key(key, outlen, dctx->server, dctx->peer_id, dctx->peerid_len, dctx->self_id, dctx->selfid_len, \
         dctx->peer_ecdhe_key, dctx->self_ecdhe_key, ctx->peerkey->pkey.ec, ctx->pkey->pkey.ec, dctx->kdf_md);
 
+#ifdef TASSL_DEBUG
+    printf("exchange key:");
+    for(i=0; i<outlen; i++){
+    	printf("%02X", *(key+i));
+    }
+    printf("\n");
+    
+#endif
     if (ret <= 0)
         return 0;
     return 1;
@@ -383,10 +436,11 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
             EVP_MD_type((const EVP_MD *)p2) != NID_sha224 &&
             EVP_MD_type((const EVP_MD *)p2) != NID_sha256 &&
             EVP_MD_type((const EVP_MD *)p2) != NID_sha384 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha512 &&
+            EVP_MD_type((const EVP_MD *)p2) != NID_sha512 
             #ifndef OPENSSL_NO_CNSM
-            EVP_MD_type((const EVP_MD *)p2) != NID_sm3) {
+            && EVP_MD_type((const EVP_MD *)p2) != NID_sm3
             #endif
+                                                         ) {
             ECerr(EC_F_PKEY_EC_CTRL, EC_R_INVALID_DIGEST_TYPE);
             return 0;
         }
