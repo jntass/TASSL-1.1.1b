@@ -48,6 +48,10 @@ extern "C" {
 # define PEM_STRING_ECPRIVATEKEY "EC PRIVATE KEY"
 # define PEM_STRING_PARAMETERS   "PARAMETERS"
 # define PEM_STRING_CMS          "CMS"
+#ifndef OPENSSL_NO_CNSM
+# define PEM_STRING_TASSHSM_ECPRIVATEKEY "TASSHSM EC PRIVATE KEY"     //add by gujq on 20190830 fro tasshsm engine v0.6
+# define PEM_STRING_TASSCARD_ECPRIVATEKEY "TASSCARD EC PRIVATE KEY"     //add by TASS gujq on 20191108 for tasscard engine v0.7
+#endif
 
 # define PEM_TYPE_ENCRYPTED      10
 # define PEM_TYPE_MIC_ONLY       20

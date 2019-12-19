@@ -59,9 +59,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <openssl/evp.h>
-#include <openssl/ec.h>
-#include <crypto/include/internal/evp_int.h>
+#include "openssl/evp.h"
+#include "openssl/ec.h"
+//#include "crypto/include/internal/evp_int.h"
 
 int main(int argc, char *argv[])
 {
@@ -135,10 +135,10 @@ int main(int argc, char *argv[])
     out = NULL;
 
     /*OUTPUT X + Y + d*/
-    group = EC_KEY_get0_group(sm2key->pkey.ec);
+    group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(sm2key));
     
     /*Output SM2 Key*/
-    out = (unsigned char *)BN_bn2hex(EC_KEY_get0_private_key(sm2key->pkey.ec));
+    out = (unsigned char *)BN_bn2hex(EC_KEY_get0_private_key(EVP_PKEY_get0_EC_KEY(sm2key)));
     if (!out)
     {
         printf("Error Of Output SM2 Private key.\n");
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 
     printf("\n              Private Key: [%s]\n", out);
     OPENSSL_free(out);
-    out = (unsigned char *)EC_POINT_point2hex(group, EC_KEY_get0_public_key(sm2key->pkey.ec), POINT_CONVERSION_UNCOMPRESSED, NULL);
+    out = (unsigned char *)EC_POINT_point2hex(group, EC_KEY_get0_public_key((EVP_PKEY_get0_EC_KEY(sm2key))), POINT_CONVERSION_UNCOMPRESSED, NULL);
     if (!out)
     {
         printf("Error Of Output SM2 Public key.\n");

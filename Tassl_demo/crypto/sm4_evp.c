@@ -63,7 +63,7 @@
 #include <openssl/evp.h>
 #include <unistd.h>
 #include <signal.h>
-#include "sm/sm4.h"
+#include "openssl/sm4.h"
 
 uint32_t run;
 

@@ -66,7 +66,6 @@ size_t construct_key_exchange_tbs(SSL *s, unsigned char **ptbs,
 #ifndef OPENSSL_NO_CNSM
 int sm2_compute_z_digest(uint8_t *out, const EVP_MD *digest, const uint8_t *id, const size_t id_len, const EC_KEY *key);
 int ssl_add_cert_to_buf(BUF_MEM *buf, unsigned long *l, X509 *x);
-static int ssl_cipher_list_to_bytes(SSL *s, STACK_OF(SSL_CIPHER) *sk, WPACKET *pkt);
 unsigned long ssl3_output_sm2_cert_chain(SSL *s, WPACKET *pkt, CERT_PKEY *cpk, CERT_PKEY *enc_cpk);
 #endif
 /*

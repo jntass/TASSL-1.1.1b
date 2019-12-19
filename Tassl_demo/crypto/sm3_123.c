@@ -62,7 +62,7 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include <crypto/include/internal/sm3.h>
+#include "crypto/include/internal/sm3.h"
 
 int run;
 

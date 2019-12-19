@@ -59,9 +59,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <openssl/evp.h>
-#include <crypto/include/internal/sm2.h>
-#include <crypto/include/internal/sm3.h>
+#include "openssl/evp.h"
+#include "crypto/include/internal/sm2.h"
+#include "crypto/include/internal/sm3.h"
 
 /*This Demo for SM2 Signature And Verify*/
 /*First: Generate A key, And output it*/

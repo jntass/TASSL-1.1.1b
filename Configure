@@ -341,6 +341,7 @@ my @disablables = (
     "chacha",
     "cmac",
     "cms",
+    "cnsm",
     "comp",
     "crypto-mdebug",
     "crypto-mdebug-backtrace",

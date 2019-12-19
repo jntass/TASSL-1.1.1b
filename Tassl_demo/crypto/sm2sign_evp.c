@@ -59,10 +59,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <openssl/evp.h>
-#include <openssl/sm2.h>
-#include <crypto/include/internal/evp_int.h>
-#include <crypto/evp/evp_locl.h>
+#include "openssl/evp.h"
+#include "openssl/sm2.h"
+#include "crypto/include/internal/evp_int.h"
+#include "crypto/evp/evp_locl.h"
 
 int main(int argc, char *argv[])
 {

@@ -61,8 +61,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
-#include <crypto/include/internal/sm3.h>
-#include <openssl/evp.h>
+#include "crypto/include/internal/sm3.h"
+#include "openssl/evp.h"
 
 int run;
 

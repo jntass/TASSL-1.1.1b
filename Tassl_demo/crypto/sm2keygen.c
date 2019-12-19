@@ -59,10 +59,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <openssl/evp.h>
-#include <openssl/bn.h>
-#include <openssl/ec.h>
-#include <sm/sm2.h>
+#include "openssl/evp.h"
+#include "openssl/bn.h"
+#include "openssl/ec.h"
+#include "openssl/sm2.h"
 
 int main(int argc, char *argv[])
 {

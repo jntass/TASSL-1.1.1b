@@ -29,7 +29,6 @@ int ERR_load_SM2_strings(void);
 #  define SM2_F_PKEY_SM2_CTRL_STR                          110
 #  define SM2_F_PKEY_SM2_DIGEST_CUSTOM                     114
 #  define SM2_F_PKEY_SM2_INIT                              111
-#  define SM2_F_PKEY_SM2_KEYGEN                            118
 #  define SM2_F_PKEY_SM2_SIGN                              112
 #  define SM2_F_SM2KAP_COMPUTE_KEY                         117
 #  define SM2_F_SM2_COMPUTE_MSG_HASH                       100

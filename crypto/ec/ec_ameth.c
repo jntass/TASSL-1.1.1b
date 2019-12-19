@@ -608,6 +608,7 @@ const EVP_PKEY_ASN1_METHOD sm2_asn1_meth = {
    EVP_PKEY_SM2,
    EVP_PKEY_EC,
    ASN1_PKEY_ALIAS
+
 };
 #endif
 

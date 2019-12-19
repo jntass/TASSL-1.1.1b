@@ -580,6 +580,13 @@ int EVP_PKEY_id(const EVP_PKEY *pkey)
     return pkey->type;
 }
 
+#ifndef OPENSSL_NO_CNSM
+ENGINE * EVP_PKEY_pmeth_engine(const EVP_PKEY *pkey)
+{
+    return pkey->pmeth_engine;
+}
+#endif
+
 int EVP_PKEY_base_id(const EVP_PKEY *pkey)
 {
     return EVP_PKEY_type(pkey->type);

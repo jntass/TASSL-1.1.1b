@@ -59,11 +59,11 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <openssl/evp.h>
-#include <openssl/bn.h>
-#include <openssl/ec.h>
-#include <sm/sm2.h>
-#include <sm/sm3.h>
+#include "openssl/evp.h"
+#include "openssl/bn.h"
+#include "openssl/ec.h"
+#include "openssl/sm2.h"
+#include "openssl/sm3.h"
 
 /*This Demo for SM2 Signature And Verify*/
 /*First: Generate A key, And output it*/
@@ -222,7 +222,7 @@ int b2s(char *bin, char *outs)
 EC_KEY *CalcSm2PublicKey(const char *pubkey_hex_string, char* private_hex_x)
 {
 
-                int bn_len = 0;
+    int bn_len = 0;
     char raw_buf[128] ={0};
     BIGNUM *k = NULL;
 
@@ -280,6 +280,7 @@ EC_KEY *CalcSm2PublicKey(const char *pubkey_hex_string, char* private_hex_x)
 
 
 err:
+    if(k) BN_free(k);
     if (pubkey) EC_POINT_free(pubkey);
     if (ec_group) EC_GROUP_free(ec_group);
 

@@ -26,6 +26,8 @@ extern "C" {
 
 #ifndef OPENSSL_NO_CNSM
 # define SM1_1_VERSION                   0x0101
+# define SM1_1_VERSION_MAJOR       0x01
+# define SM1_1_VERSION_MINOR       0x01
 #endif
 # define TLS1_VERSION                    0x0301
 # define TLS1_1_VERSION                  0x0302

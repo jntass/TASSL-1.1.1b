@@ -44,11 +44,12 @@ int main(int argc, char **argv)
 	BIO *conn = NULL;
 	SSL *ssl = NULL;
 	SSL_CTX *ctx = NULL;
-	int usecert = 0;
+	int usecert = 1;
 	int retval;
 	int aio_tag = 0;
 	char sendbuf[MAX_BUF_LEN];
 	int i = 0;
+	const SSL_METHOD      *meth;
 
     /*Detect arguments*/
 	if (argc < 2)
@@ -66,7 +67,8 @@ int main(int argc, char **argv)
 	Init_OpenSSL();
 	
 
-	ctx = SSL_CTX_new((const struct SSL_METHOD *)CNTLS_client_method());
+	meth = CNTLS_client_method();
+	ctx = SSL_CTX_new(meth);
 	if (ctx == NULL)
 	{
 		printf("Error of Create SSL CTX!\n");
@@ -132,11 +134,11 @@ int main(int argc, char **argv)
 		goto err;
 	}
 	
-/*	if(!SSL_CTX_set_cipher_list(ctx, "ECDHE-SM4-SM3")){
+	if(!SSL_CTX_set_cipher_list(ctx, "ECDHE-SM4-SM3")){
 		printf("set cipher list fail!\n");
 		exit(0);
 	}
-*/
+
 	ssl = SSL_new(ctx);
 	if (ssl == NULL)
 	{
@@ -153,7 +155,7 @@ int main(int argc, char **argv)
 	}*/
 
 	SSL_set_connect_state(ssl);
-	//set_sm2_group_id_custom(29);
+	//SSL_set_sm2_group_id_custom(29);
 	while (1)
 	{
 		retval = SSL_do_handshake(ssl);

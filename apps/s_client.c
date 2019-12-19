@@ -620,14 +620,14 @@ const OPTIONS s_client_options[] = {
     {"verify", OPT_VERIFY, 'p', "Turn on peer certificate verification"},
     {"cert", OPT_CERT, '<', "Certificate file to use, PEM format assumed"},
 #ifndef OPENSSL_NO_CNSM
-    {"cert_enc", OPT_CERT_ENC, '<', "Encrypto Certificate file to use when use cnsm, PEM format assumed"},
+    {"cert_enc", OPT_CERT_ENC, '<', "Encryption Certificate file to use when use cnsm, PEM format assumed"},
 #endif
     {"certform", OPT_CERTFORM, 'F',
      "Certificate format (PEM or DER) PEM default"},
     {"nameopt", OPT_NAMEOPT, 's', "Various certificate name options"},
     {"key", OPT_KEY, 's', "Private key file to use, if not in -cert file"},
 #ifndef OPENSSL_NO_CNSM
-    {"key_enc", OPT_KEY_ENC, 's', "Encrypto Private key file to use when use cnsm, if not in -cert_enc file"},
+    {"key_enc", OPT_KEY_ENC, 's', "Encryption Private key file to use when use cnsm, if not in -cert_enc file"},
 #endif
     {"keyform", OPT_KEYFORM, 'E', "Key format (PEM, DER or engine) PEM default"},
     {"pass", OPT_PASS, 's', "Private key file pass phrase source"},
@@ -1111,13 +1111,12 @@ int s_client_main(int argc, char **argv)
             break;
         case OPT_CERT:
             cert_file = opt_arg();
-	    break;
 #ifndef OPENSSL_NO_CNSM
         case OPT_CERT_ENC:
             cnsm_flag++;
             cert_enc_file = opt_arg();
-            break;
 #endif
+            break;
         case OPT_NAMEOPT:
             if (!set_nameopt(opt_arg()))
                 goto end;
@@ -1944,12 +1943,12 @@ int s_client_main(int argc, char **argv)
         goto end;
 
 #ifndef OPENSSL_NO_CNSM
-    if (cnsm_flag && SSL_CTX_use_certificate_file(ctx, cert_enc_file, SSL_FILETYPE_PEM) <= 0)
+    if (cnsm_flag && SSL_CTX_use_certificate_file(ctx, key_enc_file, SSL_FILETYPE_PEM) <= 0)
     {
             ERR_print_errors(bio_err);
             goto end;
     }
-    if (cnsm_flag && SSL_CTX_use_enc_PrivateKey_file(ctx, key_enc_file, SSL_FILETYPE_PEM) <= 0)
+    if (cnsm_flag && SSL_CTX_use_enc_PrivateKey_file(ctx, cert_enc_file, SSL_FILETYPE_PEM) <= 0)
     {
             ERR_print_errors(bio_err);
             goto end;
