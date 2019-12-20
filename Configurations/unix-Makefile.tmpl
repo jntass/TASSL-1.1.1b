@@ -467,7 +467,7 @@ install_tass:
 
 	sed -i '1i\CERT_DIR=$(INSTALLTOP)/tassl_demo/cert/' $(GEN_SM2_CERT_FILE).sh
 	sed -i '1i\OPENSSL_DIR=$(INSTALLTOP)' $(GEN_SM2_CERT_FILE).sh
-	sed -i '1i\export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(INSTALLTOP)/lib' $(GEN_SM2_CERT_FILE).sh
+	sed -i '1i\export LD_LIBRARY_PATH=$(INSTALLTOP)/lib' $(GEN_SM2_CERT_FILE).sh
 	sed -i '1i\#!/bin/sh' $(GEN_SM2_CERT_FILE).sh
 
 	sed -i '1i\INC_DIR=$(INSTALLTOP)/include' $(SSL_MK_FILE).sh
