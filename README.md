@@ -27,39 +27,40 @@ OpenSSL是一套件开放源代码的安全套接字密码学基础库，囊括�
 下载地址：https://codeload.github.com/jntass/TASSL-1.1.1b/zip/master
 
 3.	上传至编译环境，进行解压编译。
-  unzip TASSL-1.1.1b-master.zip
 
-  cd TASSL-1.1.1b-master
+    unzip TASSL-1.1.1b-master.zip
 
-  chmod u+x ./config
+    cd TASSL-1.1.1b-master
 
-  ./config --prefix=/root/lib_r/tassl
+    chmod u+x ./config
 
-  make
+    ./config --prefix=/root/lib_r/tassl
 
-  make install
+    make
+
+    make install
 
 4.	进入安装目录，除了标准的openssl库和头文件外，还会有tassl_demo的例子目录
 
-  cd /root/lib_r/tassl/tassl_demo，其中：
+    cd /root/lib_r/tassl/tassl_demo，其中：
 
-  a)	cert目录:
+    a)	cert目录:
 
-  包含生成测试证书的脚本gen_sm2_cert.sh
+    包含生成测试证书的脚本gen_sm2_cert.sh
 
-  执行./ gen_sm2_cert.sh则生成测试证书目录certs
+    执行./ gen_sm2_cert.sh则生成测试证书目录certs
 
-  b)	crypto目录：
+    b)	crypto目录：
 
-  包含测试国密算法的事例
+    包含测试国密算法的事例
 
-  执行./mk.sh进行编译测试
+    执行./mk.sh进行编译测试
 
-  c)	ssl目录：
+    c)	ssl目录：
 
-  包含国密ssl通讯的客户端和服务端
+    包含国密ssl通讯的客户端和服务端
 
-  执行./mk.sh进行编译测试
+    执行./mk.sh进行编译测试
 
 
 ### (四)关于江南天安
