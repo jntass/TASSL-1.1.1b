@@ -9,7 +9,7 @@ OpenSSL是一套件开放源代码的安全套接字密码学基础库，囊括�
 ### (一)天安TaSSL-1.1.1b_R_0.8版本的功能特点
 1.支持调用江南天安加密机或加密卡进行加速和物理安全防护。
 
-2.适配了nginx-1.16.0支持国密，nginx开源地址：https://github.com/jntass/Nginx_Tassl。
+2.适配了nginx-1.16.0支持国密，nginx开源地址：https://github.com/jntass/Nginx_Tassl
 
 3.适配了360浏览器和密信浏览器的访问。
 
