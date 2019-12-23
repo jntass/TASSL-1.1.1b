@@ -30,7 +30,7 @@ OpenSSL是一套件开放源代码的安全套接字密码学基础库，囊括�
 
     tar xvf TASSL-1.1.1b-0.8.tar.gz
 
-    cd TASSL-1.1.1b-master
+    cd TASSL-1.1.1b-0.8
 
     chmod u+x ./config
 
