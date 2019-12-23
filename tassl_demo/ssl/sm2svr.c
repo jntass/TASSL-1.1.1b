@@ -92,7 +92,8 @@ int main(int argc, char **argv)
 	struct sockaddr_in sa_cli;
 	size_t client_len;
 	char    *str;
-	char    buf[MAX_BUF_LEN];
+	char buf[MAX_BUF_LEN];
+	char tmpbuf[64] = {0};
 
 	SSL_CTX         *ctx = NULL;
 	SSL             *ssl = NULL;
@@ -237,9 +238,8 @@ int main(int argc, char **argv)
 	RETURN_ERR(sock, "accept");
 	close(listen_sock);
 
-	printf("Connection from %lx, port %x\n",
-		sa_cli.sin_addr.s_addr, 
-		sa_cli.sin_port);
+	inet_ntop(AF_INET, &sa_cli.sin_addr.s_addr, tmpbuf, sizeof(tmpbuf));
+	printf("Connection from %s, port %d\n", tmpbuf, ntohs(sa_cli.sin_port));
 
 	/* ----------------------------------------------- */
 	/* TCP connection is ready. */
