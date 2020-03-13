@@ -551,6 +551,7 @@ size_t ec_key_simple_priv2oct(const EC_KEY *eckey,
     if(EC_KEY_get_flags((EC_KEY*)eckey) & EC_FLAG_TASSHSM_ENGINE){
 	    	char *lmk_pri  = BN_bn2hex(EC_KEY_get0_private_key(eckey));
 		buf_len = buf_len>strlen(lmk_pri)/2? buf_len: strlen(lmk_pri)/2;
+		OPENSSL_free(lmk_pri);    //add by gujq on 20200113 bugfix
     }
 #endif
 

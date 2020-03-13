@@ -19,6 +19,7 @@
 static int ssl_set_cert(CERT *c, X509 *x509);
 static int ssl_set_pkey(CERT *c, EVP_PKEY *pkey);
 #ifndef OPENSSL_NO_CNSM
+static int ssl_set_enc_cert(CERT *c, X509 *x509);
 static int ssl_set_enc_pkey(CERT *c, EVP_PKEY *pkey);
 int ssl_cert_type(X509 *x, EVP_PKEY *pkey);
 int ssl_cert_inst(CERT **o);
@@ -342,89 +343,10 @@ static int ssl_set_cert(CERT *c, X509 *x)
 
 #ifndef OPENSSL_NO_CNSM
     if(i == SSL_PKEY_ECC && EC_GROUP_get_curve_name(EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(pkey))) == NID_sm2){
-        if (x && (X509_get_extension_flags(x) & EXFLAG_KUSAGE) && (X509_get_key_usage(x)& X509v3_KU_DIGITAL_SIGNATURE)){
-             if (c->pkeys[i].privatekey != NULL) {
-	        /*
-	         * The return code from EVP_PKEY_copy_parameters is deliberately
-	         * ignored. Some EVP_PKEY types cannot do this.
-	         */
-	        EVP_PKEY_copy_parameters(pkey, c->pkeys[i].privatekey);
-	        ERR_clear_error();
-
-		#ifndef OPENSSL_NO_RSA
-		        /*
-		         * Don't check the public/private key, this is mostly for smart
-		         * cards.
-		         */
-		        if (EVP_PKEY_id(c->pkeys[i].privatekey) == EVP_PKEY_RSA
-		            && RSA_flags(EVP_PKEY_get0_RSA(c->pkeys[i].privatekey)) &
-		            RSA_METHOD_FLAG_NO_CHECK) ;
-		        else
-		#endif    /* OPENSSL_NO_RSA */
-		        if (!X509_check_private_key(x, c->pkeys[i].privatekey)) {
-		            /*
-		             * don't fail for a cert/key mismatch, just free current private
-		             * key (when switching to a different cert & key, first this
-		             * function should be used, then ssl_set_pkey
-		             */
-		            EVP_PKEY_free(c->pkeys[i].privatekey);
-		            c->pkeys[i].privatekey = NULL;
-		            /* clear error queue */
-		            ERR_clear_error();
-		        }
-		    }
-
-		    X509_free(c->pkeys[i].x509);
-		    X509_up_ref(x);
-		    c->pkeys[i].x509 = x;
-		    c->key = &(c->pkeys[i]);
+        if (x && (X509_get_extension_flags(x) & EXFLAG_KUSAGE) && !((X509_get_key_usage(x)& X509v3_KU_DIGITAL_SIGNATURE))){
+            SSLerr(SSL_F_SSL_SET_CERT, SSL_R_ECC_CERT_NOT_FOR_SIGNING);
+            return 0;
         }
-        if (x && (X509_get_extension_flags(x)& EXFLAG_KUSAGE) && (X509_get_key_usage(x) & (X509v3_KU_KEY_ENCIPHERMENT | X509v3_KU_DATA_ENCIPHERMENT | X509v3_KU_KEY_AGREEMENT))){
-            i = SSL_PKEY_ECC_ENC;
-            if (c->pkeys[i].privatekey != NULL) {
-	        /*
-	         * The return code from EVP_PKEY_copy_parameters is deliberately
-	         * ignored. Some EVP_PKEY types cannot do this.
-	         */
-	        EVP_PKEY_copy_parameters(pkey, c->pkeys[i].privatekey);
-	        ERR_clear_error();
-
-		#ifndef OPENSSL_NO_RSA
-		        /*
-		         * Don't check the public/private key, this is mostly for smart
-		         * cards.
-		         */
-		        if (EVP_PKEY_id(c->pkeys[i].privatekey) == EVP_PKEY_RSA
-		            && RSA_flags(EVP_PKEY_get0_RSA(c->pkeys[i].privatekey)) &
-		            RSA_METHOD_FLAG_NO_CHECK) ;
-		        else
-		#endif    /* OPENSSL_NO_RSA */
-		        if (!X509_check_private_key(x, c->pkeys[i].privatekey)) {
-		            /*
-		             * don't fail for a cert/key mismatch, just free current private
-		             * key (when switching to a different cert & key, first this
-		             * function should be used, then ssl_set_pkey
-		             */
-		            EVP_PKEY_free(c->pkeys[i].privatekey);
-		            c->pkeys[i].privatekey = NULL;
-		            /* clear error queue */
-		            ERR_clear_error();
-		        }
-		    }
-
-		    X509_free(c->pkeys[i].x509);
-		    X509_up_ref(x);
-		    c->pkeys[i].x509 = x;
-		    c->key = &(c->pkeys[i]);
-        }
-        if(c->key->x509 == NULL){   //if there is no cert for c->key, set one
-        	X509_free(c->pkeys[i].x509);
-    			X509_up_ref(x);
-    			c->pkeys[i].x509 = x;
-    			c->key = &(c->pkeys[i]);
-        	
-        }
-	return 1;
     }
 #endif
     if (c->pkeys[i].privatekey != NULL) {
@@ -720,9 +642,139 @@ end:
 
 int SSL_set_sm2_group_id_custom(uint16_t id)
 {
-   return set_sm2_group_id_custom(id);
+   return SSL_set_sm2_group_id_custom(id);
 
 }
+int SSL_CTX_use_enc_certificate_file(SSL_CTX *ctx, const char *file, int type)
+{
+    int j;
+    BIO *in;
+    int ret = 0;
+    X509 *x = NULL;
+
+    in = BIO_new(BIO_s_file());
+    if (in == NULL) {
+        SSLerr(SSL_F_SSL_CTX_USE_ENC_CERTIFICATE_FILE, ERR_R_BUF_LIB);
+        goto end;
+    }
+
+    if (BIO_read_filename(in, file) <= 0) {
+        SSLerr(SSL_F_SSL_CTX_USE_ENC_CERTIFICATE_FILE, ERR_R_SYS_LIB);
+        goto end;
+    }
+    if (type == SSL_FILETYPE_ASN1) {
+        j = ERR_R_ASN1_LIB;
+        x = d2i_X509_bio(in, NULL);
+    } else if (type == SSL_FILETYPE_PEM) {
+        j = ERR_R_PEM_LIB;
+        x = PEM_read_bio_X509(in, NULL, ctx->default_passwd_callback,
+                              ctx->default_passwd_callback_userdata);
+    } else {
+        SSLerr(SSL_F_SSL_CTX_USE_ENC_CERTIFICATE_FILE, SSL_R_BAD_SSL_FILETYPE);
+        goto end;
+    }
+
+    if (x == NULL) {
+        SSLerr(SSL_F_SSL_CTX_USE_ENC_CERTIFICATE_FILE, j);
+        goto end;
+    }
+
+    ret = SSL_CTX_use_enc_certificate(ctx, x);
+ end:
+    X509_free(x);
+    BIO_free(in);
+    return ret;
+}
+
+int SSL_CTX_use_enc_certificate(SSL_CTX *ctx, X509 *x)
+{
+    int rv;
+    if (x == NULL) {
+        SSLerr(SSL_F_SSL_CTX_USE_ENC_CERTIFICATE, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+    rv = ssl_security_cert(NULL, ctx, x, 0, 1);
+    if (rv != 1) {
+        SSLerr(SSL_F_SSL_CTX_USE_ENC_CERTIFICATE, rv);
+        return 0;
+    }
+    return ssl_set_enc_cert(ctx->cert, x);
+}
+
+static int ssl_set_enc_cert(CERT *c, X509 *x)
+{
+    EVP_PKEY *pkey;
+    size_t i;
+
+    pkey = X509_get0_pubkey(x);
+    if (pkey == NULL) {
+        SSLerr(SSL_F_SSL_SET_ENC_CERT, SSL_R_X509_LIB);
+        return 0;
+    }
+
+    if (ssl_cert_lookup_by_pkey(pkey, &i) == NULL) {
+        SSLerr(SSL_F_SSL_SET_ENC_CERT, SSL_R_UNKNOWN_CERTIFICATE_TYPE);
+        return 0;
+    }
+#ifndef OPENSSL_NO_EC
+    if (i == SSL_PKEY_ECC && !EC_KEY_can_sign(EVP_PKEY_get0_EC_KEY(pkey))) {
+        SSLerr(SSL_F_SSL_SET_ENC_CERT, SSL_R_ECC_CERT_NOT_FOR_SIGNING);
+        return 0;
+    }
+#endif
+
+    if(i == SSL_PKEY_ECC && EC_GROUP_get_curve_name(EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(pkey))) == NID_sm2){
+        if (x && (X509_get_extension_flags(x)& EXFLAG_KUSAGE) && \
+            (X509_get_key_usage(x) & (X509v3_KU_KEY_ENCIPHERMENT | X509v3_KU_DATA_ENCIPHERMENT | X509v3_KU_KEY_AGREEMENT))){
+            i = SSL_PKEY_ECC_ENC;
+        }
+        else{
+            SSLerr(SSL_F_SSL_SET_ENC_CERT, SSL_R_ECC_CERT_NOT_FOR_ENCING);
+            return 0;
+            
+        }
+    }
+    if (c->pkeys[i].privatekey != NULL) {
+        /*
+         * The return code from EVP_PKEY_copy_parameters is deliberately
+         * ignored. Some EVP_PKEY types cannot do this.
+         */
+        EVP_PKEY_copy_parameters(pkey, c->pkeys[i].privatekey);
+        ERR_clear_error();
+
+#ifndef OPENSSL_NO_RSA
+        /*
+         * Don't check the public/private key, this is mostly for smart
+         * cards.
+         */
+        if (EVP_PKEY_id(c->pkeys[i].privatekey) == EVP_PKEY_RSA
+            && RSA_flags(EVP_PKEY_get0_RSA(c->pkeys[i].privatekey)) &
+            RSA_METHOD_FLAG_NO_CHECK) ;
+        else
+#endif                          /* OPENSSL_NO_RSA */
+        if (!X509_check_private_key(x, c->pkeys[i].privatekey)) {
+            /*
+             * don't fail for a cert/key mismatch, just free current private
+             * key (when switching to a different cert & key, first this
+             * function should be used, then ssl_set_pkey
+             */
+            EVP_PKEY_free(c->pkeys[i].privatekey);
+            c->pkeys[i].privatekey = NULL;
+            /* clear error queue */
+            ERR_clear_error();
+        }
+    }
+
+    X509_free(c->pkeys[i].x509);
+    X509_up_ref(x);
+    c->pkeys[i].x509 = x;
+    /*if(c->key == NULL)
+        c->key = &(c->pkeys[i]);
+    */
+
+    return 1;
+}
+
 #endif
 int SSL_CTX_use_PrivateKey_ASN1(int type, SSL_CTX *ctx,
                                 const unsigned char *d, long len)
@@ -1341,8 +1393,8 @@ static int ssl_set_enc_pkey(CERT *c, EVP_PKEY *pkey)
 
     if (c->pkeys[i].privatekey != NULL)
         EVP_PKEY_free(c->pkeys[i].privatekey);
-        EVP_PKEY_up_ref(pkey);
-        c->pkeys[i].privatekey = pkey;
+    EVP_PKEY_up_ref(pkey);
+    c->pkeys[i].privatekey = pkey;
     return(1);
 }
 #endif

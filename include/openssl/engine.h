@@ -272,6 +272,11 @@ typedef int (*ENGINE_SSL_CLIENT_CERT_PTR) (ENGINE *, SSL *ssl,
                                            STACK_OF(X509) **pother,
                                            UI_METHOD *ui_method,
                                            void *callback_data);
+#ifndef OPENSSL_NO_CNSM
+typedef int (*ENGINE_SSL_GEN_MASTER_PTR) (ENGINE *e, SSL *s, unsigned char *pms, size_t pmslen, int free_pms);
+typedef int (*ENGINE_TLS1_GEN_KEY_BLOCK_PTR) (ENGINE *e, SSL *s, unsigned char *km, size_t num);
+#endif
+
 /*-
  * These callback types are for an ENGINE's handler for cipher and digest logic.
  * These handlers have these prototypes;
@@ -478,6 +483,13 @@ int ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f);
 int ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f);
 int ENGINE_set_load_privkey_function(ENGINE *e,
                                      ENGINE_LOAD_KEY_PTR loadpriv_f);
+#ifndef OPENSSL_NO_CNSM
+int ENGINE_set_ssl_generate_master_secret_function(ENGINE *e,
+                                     ENGINE_SSL_GEN_MASTER_PTR genmaster_f);
+int ENGINE_set_tls1_generate_key_block_function(ENGINE *e,
+                                     ENGINE_TLS1_GEN_KEY_BLOCK_PTR genkeyblk_f);
+#endif
+
 int ENGINE_set_load_pubkey_function(ENGINE *e, ENGINE_LOAD_KEY_PTR loadpub_f);
 int ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
                                              ENGINE_SSL_CLIENT_CERT_PTR
@@ -487,6 +499,9 @@ int ENGINE_set_digests(ENGINE *e, ENGINE_DIGESTS_PTR f);
 int ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f);
 int ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f);
 int ENGINE_set_flags(ENGINE *e, int flags);
+#ifndef OPENSSL_NO_CNSM
+int ENGINE_set_tass_flags(ENGINE *e, int flags);
+#endif
 int ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns);
 /* These functions allow control over any per-structure ENGINE data. */
 #define ENGINE_get_ex_new_index(l, p, newf, dupf, freef) \
@@ -539,6 +554,9 @@ const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
                                                       int len);
 const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e);
 int ENGINE_get_flags(const ENGINE *e);
+#ifndef OPENSSL_NO_CNSM
+int ENGINE_get_tass_flags(const ENGINE *e);
+#endif
 
 /*
  * FUNCTIONAL functions. These functions deal with ENGINE structures that
@@ -579,6 +597,10 @@ int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
                                 STACK_OF(X509_NAME) *ca_dn, X509 **pcert,
                                 EVP_PKEY **ppkey, STACK_OF(X509) **pother,
                                 UI_METHOD *ui_method, void *callback_data);
+#ifndef OPENSSL_NO_CNSM
+int ENGINE_ssl_generate_master_secret(ENGINE *e, SSL *s, unsigned char *pms, size_t pmslen, int free_pms);
+int ENGINE_tls1_generate_key_block(ENGINE *e, SSL *s, unsigned char *km, size_t num);
+#endif
 
 /*
  * This returns a pointer for the current ENGINE structure that is (by

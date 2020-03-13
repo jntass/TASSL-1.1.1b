@@ -4598,3 +4598,9 @@ sm2_do_verify                           4551	1_1_1b	EXIST::FUNCTION:SM2
 sm3_block_data_order                    4552	1_1_1b	EXIST::FUNCTION:SM3
 EVP_PKEY_pmeth_engine                   4553	1_1_1b	EXIST::FUNCTION:CNSM
 sm3_final                               4554	1_1_1b	EXIST::FUNCTION:SM3
+ENGINE_ssl_generate_master_secret       4555	1_1_1b	EXIST::FUNCTION:CNSM,ENGINE
+ENGINE_set_ssl_generate_master_secret_function 4556	1_1_1b	EXIST::FUNCTION:CNSM,ENGINE
+ENGINE_tls1_generate_key_block          4557	1_1_1b	EXIST::FUNCTION:CNSM,ENGINE
+ENGINE_set_tls1_generate_key_block_function 4558	1_1_1b	EXIST::FUNCTION:CNSM,ENGINE
+ENGINE_set_tass_flags                   4559	1_1_1b	EXIST::FUNCTION:CNSM,ENGINE
+ENGINE_get_tass_flags                   4560	1_1_1b	EXIST::FUNCTION:CNSM,ENGINE

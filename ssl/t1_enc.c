@@ -14,6 +14,7 @@
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
 #include <openssl/rand.h>
+#include <openssl/engine.h>
 
 /* seed1 through seed5 are concatenated */
 static int tls1_PRF(SSL *s,
@@ -396,6 +397,18 @@ int tls1_setup_key_block(SSL *s)
                    ((z + 1) % 16) ? ' ' : '\n');
     }
 #endif
+
+#ifndef OPENSSL_NO_CNSM
+    ENGINE *local_e_sm4 = NULL;
+    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
+    if(local_e_sm4){
+        if(!ENGINE_tls1_generate_key_block(local_e_sm4, s, p, num)){
+            goto err;
+        }
+        ENGINE_finish(local_e_sm4);
+    }
+    else
+#endif
     if (!tls1_generate_key_block(s, p, num)) {
         /* SSLfatal() already called */
         goto err;
@@ -448,6 +461,15 @@ size_t tls1_final_finish_mac(SSL *s, const char *str, size_t slen,
         /* SSLfatal() already called */
         return 0;
     }
+    //TODO:目前tasscard_sm4暂时不支持计算finish_mac，所以采取把明文masterkey复制到masterkey密文部分，进行此tls1_PRF
+#ifndef OPENSSL_NO_CNSM
+    ENGINE *local_e_sm4 = NULL;
+    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
+    if(local_e_sm4){
+        memcpy(s->session->master_key, s->session->master_key+48, 48);
+        ENGINE_finish(local_e_sm4);
+    }
+#endif
 
     if (!tls1_PRF(s, str, slen, hash, hashlen, NULL, 0, NULL, 0, NULL, 0,
                   s->session->master_key, s->session->master_key_length,

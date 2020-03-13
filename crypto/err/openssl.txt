@@ -1,4 +1,4 @@
-# Copyright 1999-2019 The OpenSSL Project Authors. All Rights Reserved.
+# Copyright 1999-2020 The OpenSSL Project Authors. All Rights Reserved.
 #
 # Licensed under the OpenSSL license (the "License").  You may not use
 # this file except in compliance with the License.  You can obtain a copy
@@ -705,7 +705,9 @@ ENGINE_F_ENGINE_REMOVE:123:ENGINE_remove
 ENGINE_F_ENGINE_SET_DEFAULT_STRING:189:ENGINE_set_default_string
 ENGINE_F_ENGINE_SET_ID:129:ENGINE_set_id
 ENGINE_F_ENGINE_SET_NAME:130:ENGINE_set_name
+ENGINE_F_ENGINE_SSL_GENERATE_MASTER_SECRET:201:ENGINE_ssl_generate_master_secret
 ENGINE_F_ENGINE_TABLE_REGISTER:184:engine_table_register
+ENGINE_F_ENGINE_TLS1_GENERATE_KEY_BLOCK:202:ENGINE_tls1_generate_key_block
 ENGINE_F_ENGINE_UNLOCKED_FINISH:191:engine_unlocked_finish
 ENGINE_F_ENGINE_UP_REF:190:ENGINE_up_ref
 ENGINE_F_INT_CLEANUP_ITEM:199:int_cleanup_item
@@ -1267,6 +1269,8 @@ SSL_F_SSL_CTX_SET_TLSEXT_MAX_FRAGMENT_LENGTH:551:\
 SSL_F_SSL_CTX_USE_CERTIFICATE:171:SSL_CTX_use_certificate
 SSL_F_SSL_CTX_USE_CERTIFICATE_ASN1:172:SSL_CTX_use_certificate_ASN1
 SSL_F_SSL_CTX_USE_CERTIFICATE_FILE:173:SSL_CTX_use_certificate_file
+SSL_F_SSL_CTX_USE_ENC_CERTIFICATE:653:SSL_CTX_use_enc_certificate
+SSL_F_SSL_CTX_USE_ENC_CERTIFICATE_FILE:654:SSL_CTX_use_enc_certificate_file
 SSL_F_SSL_CTX_USE_ENC_PRIVATEKEY:645:SSL_CTX_use_enc_PrivateKey
 SSL_F_SSL_CTX_USE_ENC_PRIVATEKEY_FILE:646:SSL_CTX_use_enc_PrivateKey_file
 SSL_F_SSL_CTX_USE_PRIVATEKEY:174:SSL_CTX_use_PrivateKey
@@ -1329,6 +1333,7 @@ SSL_F_SSL_SET_CERT:191:ssl_set_cert
 SSL_F_SSL_SET_CERT_AND_KEY:621:ssl_set_cert_and_key
 SSL_F_SSL_SET_CIPHER_LIST:271:SSL_set_cipher_list
 SSL_F_SSL_SET_CT_VALIDATION_CALLBACK:399:SSL_set_ct_validation_callback
+SSL_F_SSL_SET_ENC_CERT:655:ssl_set_enc_cert
 SSL_F_SSL_SET_ENC_PKEY:648:ssl_set_enc_pkey
 SSL_F_SSL_SET_FD:192:SSL_set_fd
 SSL_F_SSL_SET_PKEY:193:ssl_set_pkey
@@ -2684,6 +2689,7 @@ SSL_R_DH_PUBLIC_VALUE_LENGTH_IS_WRONG:148:dh public value length is wrong
 SSL_R_DIGEST_CHECK_FAILED:149:digest check failed
 SSL_R_DTLS_MESSAGE_TOO_BIG:334:dtls message too big
 SSL_R_DUPLICATE_COMPRESSION_ID:309:duplicate compression id
+SSL_R_ECC_CERT_NOT_FOR_ENCING:294:ecc cert not for encing
 SSL_R_ECC_CERT_NOT_FOR_SIGNING:318:ecc cert not for signing
 SSL_R_ECDH_REQUIRED_FOR_SUITEB_MODE:374:ecdh required for suiteb mode
 SSL_R_EE_KEY_TOO_SMALL:399:ee key too small

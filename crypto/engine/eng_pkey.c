@@ -32,6 +32,24 @@ int ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
     return 1;
 }
 
+#ifndef OPENSSL_NO_CNSM
+int ENGINE_set_ssl_generate_master_secret_function(ENGINE *e,
+                                             ENGINE_SSL_GEN_MASTER_PTR
+                                             ssl_gen_master_f)
+{
+    e->ssl_generate_master_secret = ssl_gen_master_f;
+    return 1;
+}
+
+int ENGINE_set_tls1_generate_key_block_function(ENGINE *e,
+                                             ENGINE_TLS1_GEN_KEY_BLOCK_PTR
+                                             tls1_gen_key_block_f)
+{
+    e->tls1_generate_key_block = tls1_gen_key_block_f;
+    return 1;
+}
+#endif
+
 ENGINE_LOAD_KEY_PTR ENGINE_get_load_privkey_function(const ENGINE *e)
 {
     return e->load_privkey;
@@ -138,3 +156,54 @@ int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
     return e->load_ssl_client_cert(e, s, ca_dn, pcert, ppkey, pother,
                                    ui_method, callback_data);
 }
+
+#ifndef OPENSSL_NO_CNSM
+int ENGINE_ssl_generate_master_secret(ENGINE *e, SSL *s, unsigned char *pms, size_t pmslen, int free_pms)
+{
+
+    if (e == NULL) {
+        ENGINEerr(ENGINE_F_ENGINE_SSL_GENERATE_MASTER_SECRET,
+                  ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+    CRYPTO_THREAD_write_lock(global_engine_lock);
+    if (e->funct_ref == 0) {
+        CRYPTO_THREAD_unlock(global_engine_lock);
+        ENGINEerr(ENGINE_F_ENGINE_SSL_GENERATE_MASTER_SECRET,
+                  ENGINE_R_NOT_INITIALISED);
+        return 0;
+    }
+    CRYPTO_THREAD_unlock(global_engine_lock);
+    if (!e->ssl_generate_master_secret) {
+        ENGINEerr(ENGINE_F_ENGINE_SSL_GENERATE_MASTER_SECRET,
+                  ENGINE_R_NO_LOAD_FUNCTION);
+        return 0;
+    }
+    return e->ssl_generate_master_secret(e, s, pms, pmslen, free_pms);
+}
+
+int ENGINE_tls1_generate_key_block(ENGINE *e, SSL *s, unsigned char *km, size_t num)
+{
+
+    if (e == NULL) {
+        ENGINEerr(ENGINE_F_ENGINE_TLS1_GENERATE_KEY_BLOCK,
+                  ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+    CRYPTO_THREAD_write_lock(global_engine_lock);
+    if (e->funct_ref == 0) {
+        CRYPTO_THREAD_unlock(global_engine_lock);
+        ENGINEerr(ENGINE_F_ENGINE_TLS1_GENERATE_KEY_BLOCK,
+                  ENGINE_R_NOT_INITIALISED);
+        return 0;
+    }
+    CRYPTO_THREAD_unlock(global_engine_lock);
+    if (!e->tls1_generate_key_block) {
+        ENGINEerr(ENGINE_F_ENGINE_TLS1_GENERATE_KEY_BLOCK,
+                  ENGINE_R_NO_LOAD_FUNCTION);
+        return 0;
+    }
+    return e->tls1_generate_key_block(e, s, km, num);
+}
+
+#endif

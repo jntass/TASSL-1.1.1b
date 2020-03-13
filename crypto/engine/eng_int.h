@@ -145,6 +145,11 @@ struct engine_st {
     ENGINE_LOAD_KEY_PTR load_privkey;
     ENGINE_LOAD_KEY_PTR load_pubkey;
     ENGINE_SSL_CLIENT_CERT_PTR load_ssl_client_cert;
+#ifndef OPENSSL_NO_CNSM
+    int tass_flags;		//0=plain premaster key input 1=cipher premasterkey input 
+    ENGINE_SSL_GEN_MASTER_PTR ssl_generate_master_secret;
+    ENGINE_TLS1_GEN_KEY_BLOCK_PTR tls1_generate_key_block;
+#endif
     const ENGINE_CMD_DEFN *cmd_defns;
     int flags;
     /* reference count on the structure itself */

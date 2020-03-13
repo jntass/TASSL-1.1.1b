@@ -3613,6 +3613,9 @@ int tls_client_key_exchange_post_work(SSL *s)
 {
     unsigned char *pms = NULL;
     size_t pmslen = 0;
+#ifndef OPENSSL_NO_CNSM
+    ENGINE *local_e_sm4 = NULL;
+#endif
 
     pms = s->s3->tmp.pms;
     pmslen = s->s3->tmp.pmslen;
@@ -3633,6 +3636,25 @@ int tls_client_key_exchange_post_work(SSL *s)
                  SSL_F_TLS_CLIENT_KEY_EXCHANGE_POST_WORK, ERR_R_MALLOC_FAILURE);
         goto err;
     }
+#ifndef OPENSSL_NO_CNSM
+    //判断是否加载了tasscard_sm4引擎，如果加载了则传递给tasscard_sm4进行密文的premasterkey生成，
+    //如果如果没有加载tasscard_sm4，则生成明文的premasterkey(暂保留，目前如果没有加载tasscard_sm4，使用软算法进行计算masterkey)
+    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
+    if(local_e_sm4){
+        EVP_PKEY * local_evp_ptr = NULL;
+        local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
+        if(local_evp_ptr && !strcmp(ENGINE_get_id(EVP_PKEY_pmeth_engine(local_evp_ptr)), "tasscard_sm2")){
+            ENGINE_set_tass_flags(local_e_sm4, 1);
+        }else{
+            ENGINE_set_tass_flags(local_e_sm4, 0);
+        }
+        if(!ENGINE_ssl_generate_master_secret(local_e_sm4, s, pms, pmslen, 1)){
+            pmslen = 0;
+            goto err;
+        }
+        ENGINE_finish(local_e_sm4);
+    }else 
+#endif
     if (!ssl_generate_master_secret(s, pms, pmslen, 1)) {
         /* SSLfatal() already called */
         /* ssl_generate_master_secret frees the pms even on error */
@@ -3677,6 +3699,10 @@ int tls_client_key_exchange_post_work(SSL *s)
 
     return 1;
  err:
+#ifndef OPENSSL_NO_CNSM
+    if(local_e_sm4)
+        ENGINE_finish(local_e_sm4);
+#endif
     OPENSSL_clear_free(pms, pmslen);
     s->s3->tmp.pms = NULL;
     return 0;

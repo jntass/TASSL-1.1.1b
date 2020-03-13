@@ -1599,7 +1599,10 @@ __owur int SSL_CTX_use_enc_PrivateKey(SSL_CTX *ctx, EVP_PKEY *pkey);
 __owur int SSL_CTX_use_enc_PrivateKey_file(SSL_CTX *ctx, const char *file,
                                        int type);
 __owur int SSL_set_sm2_group_id_custom(uint16_t id);
-
+__owur int SSL_CTX_use_enc_certificate_file(SSL_CTX *ctx, const char *file,
+                                        int type);
+__owur int SSL_CTX_use_enc_certificate(SSL_CTX *ctx, X509 *x);
+__owur int SSL_CTX_use_enc_certificate_chain_file(SSL_CTX *ctx, const char *file);
 #endif
 __owur int SSL_CTX_use_certificate_file(SSL_CTX *ctx, const char *file,
                                         int type);
@@ -2155,6 +2158,9 @@ size_t SSL_CTX_get_num_tickets(const SSL_CTX *ctx);
 
 __owur int SSL_session_reused(SSL *s);
 __owur int SSL_is_server(const SSL *s);
+#ifndef OPENSSL_NO_CNSM
+__owur int SSL_set_s3_tmp_pms(const SSL *s);
+#endif
 
 __owur __owur SSL_CONF_CTX *SSL_CONF_CTX_new(void);
 int SSL_CONF_CTX_finish(SSL_CONF_CTX *cctx);

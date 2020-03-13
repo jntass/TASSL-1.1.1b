@@ -116,6 +116,7 @@ static int dlfcn_load(DSO *dso)
 # endif
     ptr = dlopen(filename, flags);
     if (ptr == NULL) {
+	printf("the error = [%s]\n", dlerror());
         DSOerr(DSO_F_DLFCN_LOAD, DSO_R_LOAD_FAILED);
         ERR_add_error_data(4, "filename(", filename, "): ", dlerror());
         goto err;

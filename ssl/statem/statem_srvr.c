@@ -23,6 +23,7 @@
 #include <openssl/dh.h>
 #include <openssl/bn.h>
 #include <openssl/md5.h>
+#include <openssl/engine.h>
 
 #define TICKET_NONCE_SIZE       8
 
@@ -3139,8 +3140,18 @@ static int tls_process_cke_sm2ecc(SSL *s, PACKET *pkt)
     	}
     	printf("]\n");
     }
-    #endif
-
+#endif
+    //判断是否加载了tasscard_sm4引擎，如果加载了则使用明文的premasterkey进行计算masterkey
+    ///(TODO:目前卡不支持，需要移植支持明文的premasterkey计算masterkey)
+    ENGINE *local_e_sm4 = NULL;
+    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
+    if(local_e_sm4){
+        ENGINE_set_tass_flags(local_e_sm4, 0);      //0=plain premasterkey input 1=cipher premasterkey input
+        if(!ENGINE_ssl_generate_master_secret(local_e_sm4, s, rand_premaster_secret, sizeof(rand_premaster_secret), 0)){
+            goto err;
+            
+        }
+    }else
     if (!ssl_generate_master_secret(s, rand_premaster_secret,
                                     sizeof(rand_premaster_secret), 0)) {
         /* SSLfatal() already called */

@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 			goto err;
 		}
 
-		if (SSL_CTX_use_certificate_file(ctx, CLIENT_E_CERT, SSL_FILETYPE_PEM) <= 0)
+		if (SSL_CTX_use_enc_certificate_file(ctx, CLIENT_E_CERT, SSL_FILETYPE_PEM) <= 0)
 		{
 			ERR_print_errors_fp(stderr);
 			goto err;

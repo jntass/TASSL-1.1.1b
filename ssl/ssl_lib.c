@@ -4629,6 +4629,14 @@ int SSL_is_server(const SSL *s)
     return s->server;
 }
 
+#ifndef OPENSSL_NO_CNSM
+int SSL_set_s3_tmp_pms(const SSL *s)
+{
+    s->s3->tmp.pms = NULL;
+    return 1;
+}
+#endif
+
 #if OPENSSL_API_COMPAT < 0x10100000L
 void SSL_set_debug(SSL *s, int debug)
 {

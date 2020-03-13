@@ -1,3 +1,11 @@
+20200218_V_1.0:
+1:修改ssl建链时，加载加密证书的方法为SSL_CTX_use_enc_certificate_file，替换原来使用SSL_CTX_use_certificate_file自动选择，因为有的证书用法不规范。
+2.更新util/libcrypto.num和libssl.num文件，修复安装到操作系统后导致的链接问题。
+
+20200210_V_0.9:
+1:增加引擎支持tasscard_sm4，调用加密卡进行运算sm4.
+2.修复部分内存泄漏。
+
 20191127_V_0.8:
 1:修复部分内存泄漏。
 2:增加自动安装tassl_demo功能。

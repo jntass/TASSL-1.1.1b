@@ -1,4 +1,4 @@
-# Copyright 1999-2019 The OpenSSL Project Authors. All Rights Reserved.
+# Copyright 1999-2020 The OpenSSL Project Authors. All Rights Reserved.
 #
 # Licensed under the OpenSSL license (the "License").  You may not use
 # this file except in compliance with the License.  You can obtain a copy
@@ -705,7 +705,9 @@ ENGINE_F_ENGINE_REMOVE:123:ENGINE_remove
 ENGINE_F_ENGINE_SET_DEFAULT_STRING:189:ENGINE_set_default_string
 ENGINE_F_ENGINE_SET_ID:129:ENGINE_set_id
 ENGINE_F_ENGINE_SET_NAME:130:ENGINE_set_name
+ENGINE_F_ENGINE_SSL_GENERATE_MASTER_SECRET:201:ENGINE_ssl_generate_master_secret
 ENGINE_F_ENGINE_TABLE_REGISTER:184:engine_table_register
+ENGINE_F_ENGINE_TLS1_GENERATE_KEY_BLOCK:202:ENGINE_tls1_generate_key_block
 ENGINE_F_ENGINE_UNLOCKED_FINISH:191:engine_unlocked_finish
 ENGINE_F_ENGINE_UP_REF:190:ENGINE_up_ref
 ENGINE_F_INT_CLEANUP_ITEM:199:int_cleanup_item
@@ -1092,6 +1094,7 @@ SM2_F_PKEY_SM2_CTRL:109:pkey_sm2_ctrl
 SM2_F_PKEY_SM2_CTRL_STR:110:pkey_sm2_ctrl_str
 SM2_F_PKEY_SM2_DIGEST_CUSTOM:114:pkey_sm2_digest_custom
 SM2_F_PKEY_SM2_INIT:111:pkey_sm2_init
+SM2_F_PKEY_SM2_KEYGEN:118:pkey_sm2_keygen
 SM2_F_PKEY_SM2_SIGN:112:pkey_sm2_sign
 SM2_F_SM2KAP_COMPUTE_KEY:117:SM2Kap_compute_key
 SM2_F_SM2_COMPUTE_MSG_HASH:100:sm2_compute_msg_hash

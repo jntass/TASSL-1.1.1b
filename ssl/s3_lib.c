@@ -10,12 +10,14 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <openssl/objects.h>
 #include "internal/nelem.h"
 #include "ssl_locl.h"
 #include <openssl/md5.h>
 #include <openssl/dh.h>
 #include <openssl/rand.h>
+#include <openssl/engine.h>
 #include "internal/cryptlib.h"
 
 #define TLS13_NUM_CIPHERS       OSSL_NELEM(tls13_ciphers)
@@ -4982,6 +4984,27 @@ typedef struct {
     int encdata_format;
 }EC_PKEY_CTX;
 
+struct evp_pkey_ctx_st {
+    /* Method associated with this operation */
+    const EVP_PKEY_METHOD *pmeth;
+    /* Engine that implements this method or NULL if builtin */
+    ENGINE *engine;
+    /* Key: may be NULL */
+    EVP_PKEY *pkey;
+    /* Peer key for key agreement, may be NULL */
+    EVP_PKEY *peerkey;
+    /* Actual operation */
+    int operation;
+    /* Algorithm specific data */
+    void *data;
+    /* Application specific data */
+    void *app_data;
+    /* Keygen callback */
+    EVP_PKEY_gen_cb *pkey_gencb;
+    /* implementation specific keygen data */
+    int *keygen_info;
+    int keygen_info_count;
+} /* EVP_PKEY_CTX */ ;
 
 int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
 {
@@ -4992,6 +5015,7 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
     EC_PKEY_CTX *dctx = NULL;
     EVP_PKEY *srvr_pub_pkey = NULL;
     const EVP_MD *md = NULL;
+    ENGINE *local_e_sm4 = NULL;
 
     if (privkey == NULL || pubkey == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_DERIVE_SM2,
@@ -5004,7 +5028,7 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
          SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_DERIVE_SM2,
                    ERR_R_INTERNAL_ERROR);
          goto err;
-    	}
+    }
 
     srvr_pub_pkey = X509_get_pubkey(sk_X509_value(s->session->peer_chain, sk_X509_num(s->session->peer_chain)-1));
     if ((srvr_pub_pkey == NULL) || (EVP_PKEY_id(srvr_pub_pkey) != EVP_PKEY_EC) || (EVP_PKEY_get0_EC_KEY(srvr_pub_pkey) == NULL))
@@ -5039,13 +5063,25 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
     }
 
     if (EVP_PKEY_derive_init(pctx) <= 0
-        || EVP_PKEY_derive_set_peer(pctx, srvr_pub_pkey) <= 0
-        || EVP_PKEY_derive(pctx, pms, &pmslen) <= 0) {
+        || EVP_PKEY_derive_set_peer(pctx, srvr_pub_pkey) <= 0)  {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_DERIVE_SM2,
+                 ERR_R_INTERNAL_ERROR);
+        goto err;
+    }
+    //判断是否加载了tasscard_sm4引擎，如果加载了则传递给tasscard_sm4进行密文的premasterkey生成，
+    //如果如果没有加载tasscard_sm4，则生成明文的premasterkey(暂保留，目前如果没有加载tasscard_sm4，使用软算法进行计算masterkey)
+    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
+    if(local_e_sm4){
+        pctx->app_data = 1;     //控制EVP_PKEY_derive中premasterkey的生成是否是密文
+    }
+        
+    if(EVP_PKEY_derive(pctx, pms, &pmslen) <= 0) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_DERIVE_SM2,
                  ERR_R_INTERNAL_ERROR);
         goto err;
     }
 
+    
     
     if (gensecret) {
         /* SSLfatal() called as appropriate in the below functions */
@@ -5063,6 +5099,17 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
 
             rv = rv && tls13_generate_handshake_secret(s, pms, pmslen);
         } else {
+            
+            if(local_e_sm4){
+                //控制premasterkey的输入是否是密文，如果加载了tasscard_sm2，则认为计算masterkey输入的premasterkey为密文
+                if(pctx->engine && !strcmp(ENGINE_get_id(pctx->engine), "tasscard_sm2")){
+                    ENGINE_set_tass_flags(local_e_sm4, 1);
+                }else{
+                    ENGINE_set_tass_flags(local_e_sm4, 0);
+                }
+                rv = ENGINE_ssl_generate_master_secret(local_e_sm4, s, pms, pmslen, 0);
+            }
+            else
             rv = ssl_generate_master_secret(s, pms, pmslen, 0);
         }
     } else {
@@ -5074,10 +5121,12 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
     }
 
  err:
- 		if(srvr_pub_pkey)
- 			EVP_PKEY_free(srvr_pub_pkey);
+    if(srvr_pub_pkey)
+        EVP_PKEY_free(srvr_pub_pkey);
     OPENSSL_clear_free(pms, pmslen);
     EVP_PKEY_CTX_free(pctx);
+    if(local_e_sm4)
+        ENGINE_finish(local_e_sm4);
     return rv;
 }
 #endif

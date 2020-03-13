@@ -173,7 +173,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Load the server encrypt certificate into the SSL_CTX structure */
-	if (SSL_CTX_use_certificate_file(ctx, SM2_SERVER_ENC_CERT, SSL_FILETYPE_PEM) <= 0)
+	if (SSL_CTX_use_enc_certificate_file(ctx, SM2_SERVER_ENC_CERT, SSL_FILETYPE_PEM) <= 0)
 	{
 		ERR_print_errors_fp(stderr);
 		exit(1);
