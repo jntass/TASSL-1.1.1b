@@ -3634,13 +3634,13 @@ int tls_client_key_exchange_post_work(SSL *s)
         goto err;
     }
 #ifndef OPENSSL_NO_CNSM
-    //如果此ssl的私钥加载了tasscard_sm2引擎，则使用卡进行masterkey计算
+    //如果此ssl的私钥加载了sm2引擎，则使用引擎进行masterkey计算
     ENGINE *local_e_sm2 = NULL;
     EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     if(local_evp_ptr)
         local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
-    if(local_evp_ptr && local_e_sm2 && !strcmp(ENGINE_get_id(local_e_sm2), "tasscard_sm2")){
+    if(local_evp_ptr && local_e_sm2){
         if(s->s3 && s->s3->tmp.new_cipher && s->s3->tmp.new_cipher->id == TLS1_CK_ECDHE_WITH_SM4_SM3){      //ECDHE-SM4-SM2套件使用密文premasterkey作为输入， ECC—SM4-SM3使用明文premasterkey作为输入
             ENGINE_set_tass_flags(local_e_sm2, TASS_FLAG_PRE_MASTER_KEY_CIPHER);
         }

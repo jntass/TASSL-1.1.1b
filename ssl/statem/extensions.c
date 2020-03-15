@@ -845,7 +845,7 @@ int tls_construct_extensions(SSL *s, WPACKET *pkt, unsigned int context,
             continue;
         
 #ifndef OPENSL_NO_CNSM
-        if(thisexd->type == TLSEXT_TYPE_extended_master_secret && max_version == SM1_1_VERSION)     //tasscard_sm4 engine not support the extended masterkey secret
+        if(thisexd->type == TLSEXT_TYPE_extended_master_secret && max_version == SM1_1_VERSION)     //sm4 engine not support the extended masterkey secret
             continue;
 #endif
         construct = s->server ? thisexd->construct_stoc

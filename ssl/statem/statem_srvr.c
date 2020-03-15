@@ -3142,13 +3142,13 @@ static int tls_process_cke_sm2ecc(SSL *s, PACKET *pkt)
     }
 #endif
     
-    //如果此ssl的私钥加载了tasscard_sm2引擎，则使用卡进行masterkey计算
+    //如果此ssl的私钥加载了sm2引擎，则使用引擎进行masterkey计算
     ENGINE *local_e_sm2 = NULL;
     EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     if(local_evp_ptr)
         local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
-    if(local_evp_ptr && local_e_sm2 && !strcmp(ENGINE_get_id(local_e_sm2), "tasscard_sm2")){        //ECC-SM4-SM3只可能是明文的premasterkey，因为此premasterkey时客户端随机生成加密发送过来的
+    if(local_evp_ptr && local_e_sm2 ){        //ECC-SM4-SM3只可能是明文的premasterkey，因为此premasterkey时客户端随机生成加密发送过来的
         if(!ENGINE_ssl_generate_master_secret(local_e_sm2, s, rand_premaster_secret, sizeof(rand_premaster_secret), 0)){
             goto err;
         }

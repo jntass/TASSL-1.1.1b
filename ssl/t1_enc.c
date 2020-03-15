@@ -398,15 +398,15 @@ int tls1_setup_key_block(SSL *s)
     }
 #endif
 
-#ifndef OPENSSL_NO_CNSM     //如果此ssl的私钥加载了tasscard_sm2引擎，则调用卡进行计算keyblock，此时的p为主密钥密文
+#ifndef OPENSSL_NO_CNSM     //如果此ssl的私钥加载了sm2引擎，则调用引擎进行计算keyblock，此时的p为主密钥密文
     ENGINE *local_e_sm4 = NULL;
     ENGINE *local_e_sm2 = NULL;
     EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     if(local_evp_ptr)
         local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
-    if(local_evp_ptr && local_e_sm2 && !strcmp(ENGINE_get_id(local_e_sm2), "tasscard_sm2")){
-        if((local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc)) != NULL){      //如果加载了tasscard_sm4引擎，则设置计算密文的sm4key
+    if(local_evp_ptr && local_e_sm2 ){
+        if((local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc)) != NULL){      //如果加载了sm4引擎，则设置计算密文的sm4key
             ENGINE_set_tass_flags(local_e_sm2, TASS_FLAG_SM4_KEY_CIPHER);
             ENGINE_finish(local_e_sm4);
         }
@@ -470,13 +470,13 @@ size_t tls1_final_finish_mac(SSL *s, const char *str, size_t slen,
     }
     
 #ifndef OPENSSL_NO_CNSM
-    //目前tasscard_sm2暂时不支持计算finish_mac，所以采取把明文masterkey复制到masterkey密文部分，进行此tls1_PRF
+    //目前sm2暂时不支持计算finish_mac，所以采取把明文masterkey复制到masterkey密文部分，进行此tls1_PRF
     ENGINE *local_e_sm2 = NULL;
     EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     if(local_evp_ptr)
         local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
-    if(local_evp_ptr && local_e_sm2 && !strcmp(ENGINE_get_id(local_e_sm2), "tasscard_sm2")){
+    if(local_evp_ptr && local_e_sm2){
         memcpy(s->session->master_key, s->session->master_key+48, 48);
     }
 #endif
