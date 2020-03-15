@@ -43,7 +43,7 @@ our %config = (
   defines => [ "NDEBUG" ],
   dirs => [ "crypto", "ssl", "engines", "apps", "test", "util", "tools", "fuzz" ],
   dynamic_engines => "1",
-  engdirs => [ "afalg" ],
+  engdirs => [  ],
   ex_libs => [  ],
   export_var_as_fn => "0",
   includes => [  ],
@@ -55,15 +55,15 @@ our %config = (
   minor => "1.1",
   openssl_algorithm_defines => [ "OPENSSL_NO_MD2", "OPENSSL_NO_RC5" ],
   openssl_api_defines => [  ],
-  openssl_other_defines => [ "OPENSSL_RAND_SEED_OS", "OPENSSL_NO_ASAN", "OPENSSL_NO_CRYPTO_MDEBUG", "OPENSSL_NO_CRYPTO_MDEBUG_BACKTRACE", "OPENSSL_NO_DEVCRYPTOENG", "OPENSSL_NO_EC_NISTP_64_GCC_128", "OPENSSL_NO_EGD", "OPENSSL_NO_EXTERNAL_TESTS", "OPENSSL_NO_FUZZ_AFL", "OPENSSL_NO_FUZZ_LIBFUZZER", "OPENSSL_NO_HEARTBEATS", "OPENSSL_NO_MSAN", "OPENSSL_NO_SCTP", "OPENSSL_NO_SSL_TRACE", "OPENSSL_NO_SSL3", "OPENSSL_NO_SSL3_METHOD", "OPENSSL_NO_UBSAN", "OPENSSL_NO_UNIT_TEST", "OPENSSL_NO_WEAK_SSL_CIPHERS", "OPENSSL_NO_STATIC_ENGINE" ],
+  openssl_other_defines => [ "OPENSSL_RAND_SEED_OS", "OPENSSL_NO_ASAN", "OPENSSL_NO_CRYPTO_MDEBUG", "OPENSSL_NO_CRYPTO_MDEBUG_BACKTRACE", "OPENSSL_NO_DEVCRYPTOENG", "OPENSSL_NO_EC_NISTP_64_GCC_128", "OPENSSL_NO_EGD", "OPENSSL_NO_EXTERNAL_TESTS", "OPENSSL_NO_FUZZ_AFL", "OPENSSL_NO_FUZZ_LIBFUZZER", "OPENSSL_NO_HEARTBEATS", "OPENSSL_NO_MSAN", "OPENSSL_NO_SCTP", "OPENSSL_NO_SSL_TRACE", "OPENSSL_NO_SSL3", "OPENSSL_NO_SSL3_METHOD", "OPENSSL_NO_UBSAN", "OPENSSL_NO_UNIT_TEST", "OPENSSL_NO_WEAK_SSL_CIPHERS", "OPENSSL_NO_STATIC_ENGINE", "OPENSSL_NO_AFALGENG" ],
   openssl_sys_defines => [  ],
   openssl_thread_defines => [ "OPENSSL_THREADS" ],
   openssldir => "",
-  options => "--prefix=/root/tasscard_engine/tassl no-asan no-crypto-mdebug no-crypto-mdebug-backtrace no-devcryptoeng no-ec_nistp_64_gcc_128 no-egd no-external-tests no-fuzz-afl no-fuzz-libfuzzer no-heartbeats no-md2 no-msan no-rc5 no-sctp no-ssl-trace no-ssl3 no-ssl3-method no-ubsan no-unit-test no-weak-ssl-ciphers no-zlib no-zlib-dynamic",
+  options => "--prefix=/root/tasscard_engine/tassl enable-shared no-asan no-crypto-mdebug no-crypto-mdebug-backtrace no-devcryptoeng no-ec_nistp_64_gcc_128 no-egd no-external-tests no-fuzz-afl no-fuzz-libfuzzer no-heartbeats no-md2 no-msan no-rc5 no-sctp no-ssl-trace no-ssl3 no-ssl3-method no-ubsan no-unit-test no-weak-ssl-ciphers no-zlib no-zlib-dynamic",
   perl_archname => "x86_64-linux-thread-multi",
   perl_cmd => "/usr/bin/perl",
-  perl_version => "5.26.3",
-  perlargv => [ "linux-x86_64", "--prefix=/root/tasscard_engine/tassl" ],
+  perl_version => "5.16.3",
+  perlargv => [ "linux-x86_64", "--prefix=/root/tasscard_engine/tassl", "--shared" ],
   perlenv => {
       "AR" => undef,
       "ARFLAGS" => undef,
@@ -322,6 +322,7 @@ our @disablables = (
 );
 
 our %disabled = (
+  "afalgeng" => "too-old-kernel",
   "asan" => "default",
   "crypto-mdebug" => "default",
   "crypto-mdebug-backtrace" => "default",
@@ -658,10 +659,6 @@ our %unified_info = (
             "crypto/x86cpuid.s" =>
                 [
                     "crypto/perlasm/x86asm.pl",
-                ],
-            "engines/afalg" =>
-                [
-                    "libcrypto",
                 ],
             "engines/capi" =>
                 [
@@ -3192,7 +3189,6 @@ our %unified_info = (
                         {
                             "dso" =>
                                 [
-                                    "engines/afalg",
                                     "engines/capi",
                                     "engines/dasync",
                                     "engines/ossltest",
@@ -3356,7 +3352,6 @@ our %unified_info = (
         },
     "engines" =>
         [
-            "engines/afalg",
             "engines/capi",
             "engines/dasync",
             "engines/ossltest",
@@ -9157,10 +9152,6 @@ our %unified_info = (
                     "crypto/include",
                     "include",
                 ],
-            "engines/e_afalg.o" =>
-                [
-                    "include",
-                ],
             "engines/e_capi.o" =>
                 [
                     "include",
@@ -10287,7 +10278,6 @@ our %unified_info = (
         {
             "engines" =>
                 [
-                    "engines/afalg",
                     "engines/capi",
                     "engines/padlock",
                 ],
@@ -13495,10 +13485,6 @@ our %unified_info = (
                 [
                     "crypto/x86_64cpuid.s",
                 ],
-            "engines/afalg" =>
-                [
-                    "engines/e_afalg.o",
-                ],
             "engines/capi" =>
                 [
                     "engines/e_capi.o",
@@ -13506,10 +13492,6 @@ our %unified_info = (
             "engines/dasync" =>
                 [
                     "engines/e_dasync.o",
-                ],
-            "engines/e_afalg.o" =>
-                [
-                    "engines/e_afalg.c",
                 ],
             "engines/e_capi.o" =>
                 [

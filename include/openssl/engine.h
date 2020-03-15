@@ -500,7 +500,12 @@ int ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f);
 int ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f);
 int ENGINE_set_flags(ENGINE *e, int flags);
 #ifndef OPENSSL_NO_CNSM
+#define TASS_FLAG_PRE_MASTER_KEY_CIPHER 0x01
+#define TASS_FLAG_MASTER_KEY_CIPHER     0x02
+#define TASS_FLAG_SM4_KEY_CIPHER        0x04
+#define TASS_FLAG_HMAC_KEY_CIPHER       0x08
 int ENGINE_set_tass_flags(ENGINE *e, int flags);
+
 #endif
 int ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns);
 /* These functions allow control over any per-structure ENGINE data. */
@@ -555,7 +560,7 @@ const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
 const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e);
 int ENGINE_get_flags(const ENGINE *e);
 #ifndef OPENSSL_NO_CNSM
-int ENGINE_get_tass_flags(const ENGINE *e);
+int ENGINE_get_tass_flags(const ENGINE *e, int flag);
 #endif
 
 /*

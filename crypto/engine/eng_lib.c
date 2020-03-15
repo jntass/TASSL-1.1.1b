@@ -282,14 +282,14 @@ int ENGINE_get_flags(const ENGINE *e)
 }
 
 #ifndef OPENSSL_NO_CNSM
-int ENGINE_get_tass_flags(const ENGINE *e)
+int ENGINE_get_tass_flags(const ENGINE *e, int flags)
 {
-    return e->tass_flags;
+    return e->tass_flags & flags;
 }
 
 int ENGINE_set_tass_flags(ENGINE *e, int flags)
 {
-    e->tass_flags = flags;
+    e->tass_flags |= flags;
     return 1;
 }
 #endif

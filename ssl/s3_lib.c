@@ -5015,7 +5015,7 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
     EC_PKEY_CTX *dctx = NULL;
     EVP_PKEY *srvr_pub_pkey = NULL;
     const EVP_MD *md = NULL;
-    ENGINE *local_e_sm4 = NULL;
+    ENGINE *local_e_sm2 = NULL;
 
     if (privkey == NULL || pubkey == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_DERIVE_SM2,
@@ -5068,13 +5068,7 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
                  ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    //判断是否加载了tasscard_sm4引擎，如果加载了则传递给tasscard_sm4进行密文的premasterkey生成，
-    //如果如果没有加载tasscard_sm4，则生成明文的premasterkey(暂保留，目前如果没有加载tasscard_sm4，使用软算法进行计算masterkey)
-    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
-    if(local_e_sm4){
-        pctx->app_data = 1;     //控制EVP_PKEY_derive中premasterkey的生成是否是密文
-    }
-        
+    
     if(EVP_PKEY_derive(pctx, pms, &pmslen) <= 0) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_DERIVE_SM2,
                  ERR_R_INTERNAL_ERROR);
@@ -5099,15 +5093,18 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
 
             rv = rv && tls13_generate_handshake_secret(s, pms, pmslen);
         } else {
-            
-            if(local_e_sm4){
-                //控制premasterkey的输入是否是密文，如果加载了tasscard_sm2，则认为计算masterkey输入的premasterkey为密文
-                if(pctx->engine && !strcmp(ENGINE_get_id(pctx->engine), "tasscard_sm2")){
-                    ENGINE_set_tass_flags(local_e_sm4, 1);
-                }else{
-                    ENGINE_set_tass_flags(local_e_sm4, 0);
+            //如果此ssl的私钥加载了tasscard_sm2引擎，则使用卡进行masterkey计算
+            ENGINE *local_e_sm2 = NULL;
+            EVP_PKEY * local_evp_ptr = NULL;
+            local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
+            if(local_evp_ptr)
+                local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
+            if(local_evp_ptr && local_e_sm2 && !strcmp(ENGINE_get_id(local_e_sm2), "tasscard_sm2")){
+                ENGINE_set_tass_flags(local_e_sm2, TASS_FLAG_PRE_MASTER_KEY_CIPHER);       //调用卡的ECDHE-SM4-SM3套件，只可能是密文的premasterkey
+                if(!(rv = ENGINE_ssl_generate_master_secret(local_e_sm2, s, pms, pmslen, 0))){
+                    pmslen = 0;
+                    goto err;
                 }
-                rv = ENGINE_ssl_generate_master_secret(local_e_sm4, s, pms, pmslen, 0);
             }
             else
             rv = ssl_generate_master_secret(s, pms, pmslen, 0);
@@ -5125,8 +5122,6 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
         EVP_PKEY_free(srvr_pub_pkey);
     OPENSSL_clear_free(pms, pmslen);
     EVP_PKEY_CTX_free(pctx);
-    if(local_e_sm4)
-        ENGINE_finish(local_e_sm4);
     return rv;
 }
 #endif

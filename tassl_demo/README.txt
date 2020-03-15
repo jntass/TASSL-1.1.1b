@@ -1,3 +1,6 @@
+20200315_V_1.1:
+1:跟新关于tasscard_engine的调用逻辑，支持单独调用sm2和sm4系列算法。
+
 20200218_V_1.0:
 1:修改ssl建链时，加载加密证书的方法为SSL_CTX_use_enc_certificate_file，替换原来使用SSL_CTX_use_certificate_file自动选择，因为有的证书用法不规范。
 2.更新util/libcrypto.num和libssl.num文件，修复安装到操作系统后导致的链接问题。
