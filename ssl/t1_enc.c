@@ -345,6 +345,9 @@ int tls1_setup_key_block(SSL *s)
     int mac_type = NID_undef;
     size_t num, mac_secret_size = 0;
     int ret = 0;
+#ifndef OPENSSL_NO_CNSM
+    ENGINE *local_e_sm4 = NULL;
+#endif
 
     if (s->s3->tmp.key_block_length != 0)
         return 1;
@@ -398,19 +401,14 @@ int tls1_setup_key_block(SSL *s)
     }
 #endif
 
-#ifndef OPENSSL_NO_CNSM     //Èç¹û´ËsslµÄË½Ô¿¼ÓÔØÁËsm2ÒýÇæ£¬Ôòµ÷ÓÃÒýÇæ½øÐÐ¼ÆËãkeyblock£¬´ËÊ±µÄpÎªÖ÷ÃÜÔ¿ÃÜÎÄ
-    ENGINE *local_e_sm4 = NULL;
-    ENGINE *local_e_sm2 = NULL;
+#ifndef OPENSSL_NO_CNSM     //å¦‚æžœæ­¤sslçš„ç§é’¥åŠ è½½äº†sm4å¼•æ“Žï¼Œåˆ™è°ƒç”¨å¼•æ“Žè¿›è¡Œè®¡ç®—keyblockï¼Œæ­¤æ—¶çš„pä¸ºä¸»å¯†é’¥æ˜Žæ–‡æˆ–è€…å¯†æ–‡
     EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
-    if(local_evp_ptr)
-        local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
-    if(local_evp_ptr && local_e_sm2 ){
-        if((local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc)) != NULL){      //Èç¹û¼ÓÔØÁËsm4ÒýÇæ£¬ÔòÉèÖÃ¼ÆËãÃÜÎÄµÄsm4key
-            ENGINE_set_tass_flags(local_e_sm2, TASS_FLAG_SM4_KEY_CIPHER);
-            ENGINE_finish(local_e_sm4);
-        }
-        if(!ENGINE_tls1_generate_key_block(local_e_sm2, s, p, num)){
+    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
+    
+    if(local_evp_ptr && local_e_sm4 ){
+        ENGINE_set_tass_flags(local_e_sm4, TASS_FLAG_SM4_KEY_CIPHER);
+        if(!ENGINE_tls1_generate_key_block(local_e_sm4, s, p, num)){
             goto err;
         }
     }
@@ -449,7 +447,11 @@ int tls1_setup_key_block(SSL *s)
     }
 
     ret = 1;
- err:   
+ err:
+#ifndef OPENSSL_NO_CNSM
+    if(local_e_sm4)
+        ENGINE_finish(local_e_sm4);
+#endif
     return ret;
 }
 
@@ -470,15 +472,16 @@ size_t tls1_final_finish_mac(SSL *s, const char *str, size_t slen,
     }
     
 #ifndef OPENSSL_NO_CNSM
-    //Ä¿Ç°sm2ÔÝÊ±²»Ö§³Ö¼ÆËãfinish_mac£¬ËùÒÔ²ÉÈ¡°ÑÃ÷ÎÄmasterkey¸´ÖÆµ½masterkeyÃÜÎÄ²¿·Ö£¬½øÐÐ´Ëtls1_PRF
-    ENGINE *local_e_sm2 = NULL;
+    //ç›®å‰sm2æš‚æ—¶ä¸æ”¯æŒè®¡ç®—finish_macï¼Œæ‰€ä»¥é‡‡å–æŠŠæ˜Žæ–‡masterkeyå¤åˆ¶åˆ°masterkeyå¯†æ–‡éƒ¨åˆ†ï¼Œè¿›è¡Œæ­¤tls1_PRF
+    ENGINE *local_e_sm4 = NULL;
     EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
-    if(local_evp_ptr)
-        local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
-    if(local_evp_ptr && local_e_sm2){
+    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
+    if(local_evp_ptr && local_e_sm4){
         memcpy(s->session->master_key, s->session->master_key+48, 48);
     }
+    if(local_e_sm4)
+        ENGINE_finish(local_e_sm4);
 #endif
 
     if (!tls1_PRF(s, str, slen, hash, hashlen, NULL, 0, NULL, 0, NULL, 0,

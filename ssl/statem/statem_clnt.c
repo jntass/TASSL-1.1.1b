@@ -3634,21 +3634,24 @@ int tls_client_key_exchange_post_work(SSL *s)
         goto err;
     }
 #ifndef OPENSSL_NO_CNSM
-    //如果此ssl的私钥加载了sm2引擎，则使用引擎进行masterkey计算
+    //濡傛灉姝sl鐨勭閽ュ姞杞戒簡sm4寮曟搸锛屽垯浣跨敤寮曟搸杩涜masterkey璁＄畻
     ENGINE *local_e_sm2 = NULL;
+    ENGINE *local_e_sm4 = NULL;
     EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     if(local_evp_ptr)
         local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
-    if(local_evp_ptr && local_e_sm2){
-        if(s->s3 && s->s3->tmp.new_cipher && s->s3->tmp.new_cipher->id == TLS1_CK_ECDHE_WITH_SM4_SM3){      //ECDHE-SM4-SM2套件使用密文premasterkey作为输入， ECC—SM4-SM3使用明文premasterkey作为输入
-            ENGINE_set_tass_flags(local_e_sm2, TASS_FLAG_PRE_MASTER_KEY_CIPHER);
+    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc); 
+    if(local_evp_ptr && local_e_sm4){
+        if(s->s3 && s->s3->tmp.new_cipher && s->s3->tmp.new_cipher->id == TLS1_CK_ECDHE_WITH_SM4_SM3){      //ECDHE-SM4-SM2濂椾欢骞朵笖鍔犺浇浜哠M2寮曟搸锛屽垯浣跨敤瀵嗘枃premasterkey浣滀负杈撳叆
+            if(local_e_sm2)
+                ENGINE_set_tass_flags(local_e_sm4, TASS_FLAG_PRE_MASTER_KEY_CIPHER);
         }
-        if(!ENGINE_ssl_generate_master_secret(local_e_sm2, s, pms, pmslen, 1)){
+        if(!ENGINE_ssl_generate_master_secret(local_e_sm4, s, pms, pmslen, 1)){
             pmslen = 0;
             goto err;
         }
-        
+        ENGINE_finish(local_e_sm4);
     }
     else 
 #endif
@@ -3696,7 +3699,10 @@ int tls_client_key_exchange_post_work(SSL *s)
 
     return 1;
  err:
-
+#ifndef OPENSSL_NO_CSNM
+    if(local_e_sm4)
+        ENGINE_finish(local_e_sm4);
+#endif
     OPENSSL_clear_free(pms, pmslen);
     s->s3->tmp.pms = NULL;
     return 0;

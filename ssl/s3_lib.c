@@ -5015,7 +5015,7 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
     EC_PKEY_CTX *dctx = NULL;
     EVP_PKEY *srvr_pub_pkey = NULL;
     const EVP_MD *md = NULL;
-    ENGINE *local_e_sm2 = NULL;
+    ENGINE *local_e_sm4 = NULL;
 
     if (privkey == NULL || pubkey == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_DERIVE_SM2,
@@ -5069,6 +5069,12 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
         goto err;
     }
     
+    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);        //如果加载了SM4引擎，则协商密文的premasterkey；如果没有加载则协商明文的premasterkey
+    if(local_e_sm4)
+        pctx->app_data = 1;
+    else
+        pctx->app_data = 0;
+        
     if(EVP_PKEY_derive(pctx, pms, &pmslen) <= 0) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_DERIVE_SM2,
                  ERR_R_INTERNAL_ERROR);
@@ -5099,9 +5105,10 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
             local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
             if(local_evp_ptr)
                 local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
-            if(local_evp_ptr && local_e_sm2){
-                ENGINE_set_tass_flags(local_e_sm2, TASS_FLAG_PRE_MASTER_KEY_CIPHER);       //调用引擎的ECDHE-SM4-SM3套件，只可能是密文的premasterkey
-                if(!(rv = ENGINE_ssl_generate_master_secret(local_e_sm2, s, pms, pmslen, 0))){
+            if(local_evp_ptr && local_e_sm4){
+                if(local_e_sm2)
+                    ENGINE_set_tass_flags(local_e_sm4, TASS_FLAG_PRE_MASTER_KEY_CIPHER);       //调用SM2引擎的ECDHE-SM4-SM3套件，是密文的premasterkey; 不调用SM2引擎的为明文premasterkey
+                if(!(rv = ENGINE_ssl_generate_master_secret(local_e_sm4, s, pms, pmslen, 0))){
                     pmslen = 0;
                     goto err;
                 }
@@ -5118,6 +5125,8 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
     }
 
  err:
+    if(local_e_sm4)
+        ENGINE_finish(local_e_sm4);
     if(srvr_pub_pkey)
         EVP_PKEY_free(srvr_pub_pkey);
     OPENSSL_clear_free(pms, pmslen);

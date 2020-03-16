@@ -3142,16 +3142,16 @@ static int tls_process_cke_sm2ecc(SSL *s, PACKET *pkt)
     }
 #endif
     
-    //如果此ssl的私钥加载了sm2引擎，则使用引擎进行masterkey计算
-    ENGINE *local_e_sm2 = NULL;
+    //濡傛灉姝sl鐨勭閽ュ姞杞戒簡sm4寮曟搸锛屽垯浣跨敤寮曟搸杩涜masterkey璁＄畻
+    ENGINE *local_e_sm4 = NULL;
     EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
-    if(local_evp_ptr)
-        local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
-    if(local_evp_ptr && local_e_sm2 ){        //ECC-SM4-SM3只可能是明文的premasterkey，因为此premasterkey时客户端随机生成加密发送过来的
-        if(!ENGINE_ssl_generate_master_secret(local_e_sm2, s, rand_premaster_secret, sizeof(rand_premaster_secret), 0)){
+    local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
+    if(local_evp_ptr && local_e_sm4 ){        //ECC-SM4-SM3鍙彲鑳芥槸鏄庢枃鐨刾remasterkey锛屽洜涓烘premasterkey鏃跺鎴风闅忔満鐢熸垚鍔犲瘑鍙戦�佽繃鏉ョ殑
+        if(!ENGINE_ssl_generate_master_secret(local_e_sm4, s, rand_premaster_secret, sizeof(rand_premaster_secret), 0)){
             goto err;
         }
+        
     }
     else
     if (!ssl_generate_master_secret(s, rand_premaster_secret,
@@ -3164,6 +3164,8 @@ static int tls_process_cke_sm2ecc(SSL *s, PACKET *pkt)
 
     ret = 1;
  err:
+    if(local_e_sm4)
+        ENGINE_finish(local_e_sm4);
     if(pkey_ctx) 
         EVP_PKEY_CTX_free(pkey_ctx);
     return ret;
