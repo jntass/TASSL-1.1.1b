@@ -4742,11 +4742,13 @@ EVP_PKEY *ssl_generate_pkey(EVP_PKEY *pm)
 {
     EVP_PKEY_CTX *pctx = NULL;
     EVP_PKEY *pkey = NULL;
+#ifndef OPENSSL_NO_CNSM
+    ENGINE *tmp_e = NULL;
+#endif
 
     if (pm == NULL)
         return NULL;
 #ifndef OPENSSL_NO_CNSM
-    ENGINE *tmp_e = NULL;
     tmp_e = ENGINE_get_pkey_meth_engine(NID_sm2);
     if(tmp_e)
         pctx = EVP_PKEY_CTX_new(pm, tmp_e);

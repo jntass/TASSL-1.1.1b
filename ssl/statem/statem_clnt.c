@@ -3613,6 +3613,11 @@ int tls_client_key_exchange_post_work(SSL *s)
 {
     unsigned char *pms = NULL;
     size_t pmslen = 0;
+#ifndef OPENSSL_NO_CNSM
+    ENGINE *local_e_sm2 = NULL;
+    ENGINE *local_e_sm4 = NULL;
+    EVP_PKEY * local_evp_ptr = NULL;
+#endif
 
     pms = s->s3->tmp.pms;
     pmslen = s->s3->tmp.pmslen;
@@ -3634,10 +3639,7 @@ int tls_client_key_exchange_post_work(SSL *s)
         goto err;
     }
 #ifndef OPENSSL_NO_CNSM
-    //如果此ssl的私钥加载了sm4引擎，则使用引擎进行masterkey计算
-    ENGINE *local_e_sm2 = NULL;
-    ENGINE *local_e_sm4 = NULL;
-    EVP_PKEY * local_evp_ptr = NULL;
+    //如果此ssl的私钥加载了sm4引擎，则使用引擎进行masterkey计算  
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     if(local_evp_ptr)
         local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);

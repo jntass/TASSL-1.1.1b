@@ -3087,6 +3087,8 @@ static int tls_process_cke_sm2ecc(SSL *s, PACKET *pkt)
     EVP_PKEY *pkey = NULL;
     
     EVP_PKEY_CTX *pkey_ctx = NULL;
+    ENGINE *local_e_sm4 = NULL;
+    EVP_PKEY * local_evp_ptr = NULL;
 
     pkey = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     if (pkey == NULL) {
@@ -3143,8 +3145,6 @@ static int tls_process_cke_sm2ecc(SSL *s, PACKET *pkt)
 #endif
     
     //如果此ssl的私钥加载了sm4引擎，则使用引擎进行masterkey计算
-    ENGINE *local_e_sm4 = NULL;
-    EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
     if(local_evp_ptr && local_e_sm4 ){        //ECC-SM4-SM3只可能是明文的premasterkey，因为此premasterkey时客户端随机生成加密发送过来的

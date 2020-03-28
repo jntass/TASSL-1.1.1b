@@ -347,6 +347,7 @@ int tls1_setup_key_block(SSL *s)
     int ret = 0;
 #ifndef OPENSSL_NO_CNSM
     ENGINE *local_e_sm4 = NULL;
+    EVP_PKEY * local_evp_ptr = NULL;
 #endif
 
     if (s->s3->tmp.key_block_length != 0)
@@ -402,7 +403,6 @@ int tls1_setup_key_block(SSL *s)
 #endif
 
 #ifndef OPENSSL_NO_CNSM     //如果此ssl的私钥加载了sm4引擎，则调用引擎进行计算keyblock，此时的p为主密钥明文或者密文
-    EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
     
@@ -460,6 +460,10 @@ size_t tls1_final_finish_mac(SSL *s, const char *str, size_t slen,
 {
     size_t hashlen;
     unsigned char hash[EVP_MAX_MD_SIZE];
+#ifndef OPENSSL_NO_CNSM
+    ENGINE *local_e_sm4 = NULL;
+    EVP_PKEY * local_evp_ptr = NULL;
+#endif
 
     if (!ssl3_digest_cached_records(s, 0)) {
         /* SSLfatal() already called */
@@ -473,8 +477,6 @@ size_t tls1_final_finish_mac(SSL *s, const char *str, size_t slen,
     
 #ifndef OPENSSL_NO_CNSM
     //目前sm2暂时不支持计算finish_mac，所以采取把明文masterkey复制到masterkey密文部分，进行此tls1_PRF
-    ENGINE *local_e_sm4 = NULL;
-    EVP_PKEY * local_evp_ptr = NULL;
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc);
     if(local_evp_ptr && local_e_sm4){
