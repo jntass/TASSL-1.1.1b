@@ -19,6 +19,9 @@
 #include <openssl/rand.h>
 #include <openssl/engine.h>
 #include "internal/cryptlib.h"
+#ifndef OPENSSL_NO_CNSM
+#include <openssl/x509v3.h>
+#endif
 
 #define TLS13_NUM_CIPHERS       OSSL_NELEM(tls13_ciphers)
 #define SSL3_NUM_CIPHERS        OSSL_NELEM(ssl3_ciphers)
@@ -5010,7 +5013,7 @@ struct evp_pkey_ctx_st {
 
 int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
 {
-    int rv = 0;
+    int rv = 0,i= 0;
     unsigned char *pms = NULL;
     size_t pmslen = 0;
     EVP_PKEY_CTX *pctx = NULL;
@@ -5031,8 +5034,14 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
                    ERR_R_INTERNAL_ERROR);
          goto err;
     }
-
-    srvr_pub_pkey = X509_get_pubkey(sk_X509_value(s->session->peer_chain, sk_X509_num(s->session->peer_chain)-1));
+    
+    /*查找第一个数据加密功能的证书,作为加密证书使用，跟排列顺序无关*/
+    for(i=0; i<sk_X509_num(s->session->peer_chain); i++){
+        if((X509_get_extension_flags(sk_X509_value(s->session->peer_chain, i)) & EXFLAG_KUSAGE) && (X509_get_key_usage(sk_X509_value(s->session->peer_chain, i)) & X509v3_KU_DATA_ENCIPHERMENT))
+            break;
+    }
+        
+    srvr_pub_pkey = X509_get_pubkey(sk_X509_value(s->session->peer_chain, i));
     if ((srvr_pub_pkey == NULL) || (EVP_PKEY_id(srvr_pub_pkey) != EVP_PKEY_EC) || (EVP_PKEY_get0_EC_KEY(srvr_pub_pkey) == NULL))
     {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_DERIVE_SM2,
@@ -5046,7 +5055,12 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
     dctx = (EC_PKEY_CTX *)EVP_PKEY_CTX_get_data(pctx);
 	
     /* First : Set the server tag */
-    dctx->server = s->server;
+#ifdef STD_ZAZB
+    dctx->server = s->server;       //国密标准定义ZAZB
+#else
+    dctx->server = !s->server;      //国密局默认顺序ZBZA
+#endif
+
     dctx->peer_ecdhe_key = EVP_PKEY_get0_EC_KEY(pubkey);
     dctx->self_ecdhe_key = EVP_PKEY_get0_EC_KEY(privkey);
     dctx->kdf_md = md;

@@ -122,6 +122,10 @@
 #define NID_sm_scheme           1142
 #define OBJ_sm_scheme           OBJ_oscca,1L
 
+#define SN_sm_pkcs              "sm-pkcs"
+#define NID_sm_pkcs             1196
+#define OBJ_sm_pkcs             OBJ_oscca,6L
+
 #define SN_dsa          "DSA"
 #define LN_dsa          "dsaEncryption"
 #define NID_dsa         116
@@ -1183,6 +1187,41 @@
 #define LN_sm3WithRSAEncryption         "sm3WithRSAEncryption"
 #define NID_sm3WithRSAEncryption                1144
 #define OBJ_sm3WithRSAEncryption                OBJ_sm_scheme,504L
+
+#define SN_sm_pkcs7             "sm-pkcs7"
+#define LN_sm_pkcs7             "china pkcs7 series"
+#define NID_sm_pkcs7            1197
+#define OBJ_sm_pkcs7            OBJ_sm_pkcs,1L,4L,2L
+
+#define SN_pkcs7_sm2_data               "pkcs7_sm2_data"
+#define LN_pkcs7_sm2_data               "pkcs7_sm2_data"
+#define NID_pkcs7_sm2_data              1198
+#define OBJ_pkcs7_sm2_data              OBJ_sm_pkcs7,1L
+
+#define SN_pkcs7_sm2_signed             "pkcs7_sm2_signed"
+#define LN_pkcs7_sm2_signed             "pkcs7_sm2_signed"
+#define NID_pkcs7_sm2_signed            1199
+#define OBJ_pkcs7_sm2_signed            OBJ_sm_pkcs7,2L
+
+#define SN_pkcs7_sm2_enveloped          "pkcs7_sm2_enveloped"
+#define LN_pkcs7_sm2_enveloped          "pkcs7_sm2_enveloped"
+#define NID_pkcs7_sm2_enveloped         1200
+#define OBJ_pkcs7_sm2_enveloped         OBJ_sm_pkcs7,3L
+
+#define SN_pkcs7_sm2_signedAndEnveloped         "pkcs7_sm2_signedAndEnveloped"
+#define LN_pkcs7_sm2_signedAndEnveloped         "pkcs7_sm2_signedAndEnveloped"
+#define NID_pkcs7_sm2_signedAndEnveloped                1204
+#define OBJ_pkcs7_sm2_signedAndEnveloped                OBJ_sm_pkcs7,4L
+
+#define SN_pkcs7_sm2_encryptedData              "pkcs7_sm2_encryptedData"
+#define LN_pkcs7_sm2_encryptedData              "pkcs7_sm2_encryptedData"
+#define NID_pkcs7_sm2_encryptedData             1205
+#define OBJ_pkcs7_sm2_encryptedData             OBJ_sm_pkcs7,5L
+
+#define SN_pkcs7_sm2_keyAgreementInfo           "pkcs7_sm2_keyAgreementInfo"
+#define LN_pkcs7_sm2_keyAgreementInfo           "pkcs7_sm2_keyAgreementInfo"
+#define NID_pkcs7_sm2_keyAgreementInfo          1206
+#define OBJ_pkcs7_sm2_keyAgreementInfo          OBJ_sm_pkcs7,6L
 
 #define LN_hmacWithSHA224               "hmacWithSHA224"
 #define NID_hmacWithSHA224              798

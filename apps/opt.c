@@ -199,6 +199,12 @@ int opt_format(const char *s, unsigned long flags, int *result)
     switch (*s) {
     default:
         return 0;
+        
+    case 'G':
+    case 'g':
+        *result = FORMAT_BASE64_GM009_7_4;
+        return 1;
+        
     case 'D':
     case 'd':
         if ((flags & OPT_FMT_PEMDER) == 0)

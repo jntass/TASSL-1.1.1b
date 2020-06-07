@@ -31,6 +31,7 @@ int ERR_load_ENGINE_strings(void);
 #  define ENGINE_F_ENGINE_ADD                              105
 #  define ENGINE_F_ENGINE_BY_ID                            106
 #  define ENGINE_F_ENGINE_CMD_IS_EXECUTABLE                170
+#  define ENGINE_F_ENGINE_CONVERT_PRIVATE_KEY              203
 #  define ENGINE_F_ENGINE_CTRL                             142
 #  define ENGINE_F_ENGINE_CTRL_CMD                         178
 #  define ENGINE_F_ENGINE_CTRL_CMD_STRING                  171

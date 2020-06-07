@@ -1193,3 +1193,14 @@ magma_mac		1192
 hmacWithSHA512_224		1193
 hmacWithSHA512_256		1194
 sm3WithSM2Sign		1195
+sm_pkcs		1196
+sm_pkcs7		1197
+pkcs7_sm2_data		1198
+pkcs7_sm2_signed		1199
+pkcs7_sm2_enveloped		1200
+pkcs7_sm2_signedandenveloped		1201
+pkcs7_sm2_encrypteddata		1202
+pkcs7_sm2_keyagreementinfo		1203
+pkcs7_sm2_signedAndEnveloped		1204
+pkcs7_sm2_encryptedData		1205
+pkcs7_sm2_keyAgreementInfo		1206

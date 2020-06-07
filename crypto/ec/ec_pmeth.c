@@ -236,17 +236,33 @@ static int pkey_ec_sm2dh_derive(EVP_PKEY_CTX *ctx, unsigned char *key,
     }
 
     outlen = *keylen;
-#ifdef TASSL_DEBUG
+#ifdef GU_DEBUG
     unsigned char *self_pub = NULL;
+    unsigned char self_priv[64] = {0};
     unsigned char *self_tmp_pub = NULL;
+    unsigned char self_tmp_priv[64] = {0};
     unsigned char *peer_pub = NULL;
     unsigned char *peer_tmp_pub = NULL;
     int i = 0;
+    
+    printf("self_priv:");
+    EC_KEY_priv2oct(ctx->pkey->pkey.ec, self_priv, 64);
+    for(i=0; i<32; i++){
+    	printf("%02X", *(self_priv+i));
+    }
+    printf("\n");
     
     printf("self_pub:");
     EC_KEY_key2buf(ctx->pkey->pkey.ec, EC_KEY_get_conv_form(ctx->pkey->pkey.ec), &self_pub, NULL);
     for(i=0; i<65; i++){
     	printf("%02X", *(self_pub+i));
+    }
+    printf("\n");
+    
+    printf("self_tmp_priv:");
+    EC_KEY_priv2oct(dctx->self_ecdhe_key, self_tmp_priv, 64);
+    for(i=0; i<32; i++){
+    	printf("%02X", *(self_tmp_priv+i));
     }
     printf("\n");
     

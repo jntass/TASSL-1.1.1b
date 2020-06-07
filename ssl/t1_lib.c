@@ -617,6 +617,12 @@ uint16_t tls1_shared_group(SSL *s, int nmatch)
         return reserve_sm2_curve_id;
 #endif
 
+#ifndef OPENSSL_NO_CNSM
+    if(num_pref == 0 && s->s3 && s->s3->tmp.new_cipher && s->s3->tmp.new_cipher->id == TLS1_CK_ECDHE_WITH_SM4_SM3){     //有时检测客户端根本不发送支持的曲线标识，此时默认用249作为SM2曲线作为共享曲线
+        return 249;
+    }
+#endif
+
     if (nmatch == -1)
         return k;
     /* Out of range (nmatch > k). */

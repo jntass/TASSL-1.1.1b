@@ -275,6 +275,7 @@ typedef int (*ENGINE_SSL_CLIENT_CERT_PTR) (ENGINE *, SSL *ssl,
 #ifndef OPENSSL_NO_CNSM
 typedef int (*ENGINE_SSL_GEN_MASTER_PTR) (ENGINE *e, SSL *s, unsigned char *pms, size_t pmslen, int free_pms);
 typedef int (*ENGINE_TLS1_GEN_KEY_BLOCK_PTR) (ENGINE *e, SSL *s, unsigned char *km, size_t num);
+typedef int (*ENGINE_CONVERT_KEY_PTR)(ENGINE *e, const char *pri_32_hex, size_t pri_32_hex_len, unsigned char *out_cipher_priv_key_file, void *callback_data);
 #endif
 
 /*-
@@ -487,7 +488,9 @@ int ENGINE_set_load_privkey_function(ENGINE *e,
 int ENGINE_set_ssl_generate_master_secret_function(ENGINE *e,
                                      ENGINE_SSL_GEN_MASTER_PTR genmaster_f);
 int ENGINE_set_tls1_generate_key_block_function(ENGINE *e,
-                                     ENGINE_TLS1_GEN_KEY_BLOCK_PTR genkeyblk_f);
+                                     ENGINE_TLS1_GEN_KEY_BLOCK_PTR genkeyblk_f); 
+int ENGINE_set_convert_privkey_function(ENGINE *e,
+                                     ENGINE_CONVERT_KEY_PTR convertpriv_f);
 #endif
 
 int ENGINE_set_load_pubkey_function(ENGINE *e, ENGINE_LOAD_KEY_PTR loadpub_f);
@@ -605,6 +608,7 @@ int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
 #ifndef OPENSSL_NO_CNSM
 int ENGINE_ssl_generate_master_secret(ENGINE *e, SSL *s, unsigned char *pms, size_t pmslen, int free_pms);
 int ENGINE_tls1_generate_key_block(ENGINE *e, SSL *s, unsigned char *km, size_t num);
+int ENGINE_convert_private_key(ENGINE *e, const char *pri, size_t pri_len, unsigned char *out_file, void *callback_data);
 #endif
 
 /*

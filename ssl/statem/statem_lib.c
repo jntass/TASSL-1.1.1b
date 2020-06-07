@@ -265,8 +265,9 @@ int tls_construct_cert_verify(SSL *s, WPACKET *pkt)
     #ifndef OPENSSL_NO_CNSM
     
     
-    md_ctx = EVP_MD_CTX_new();
+    
     if(s->s3->tmp.new_cipher->id == TLS1_CK_ECC_WITH_SM4_SM3 || s->s3->tmp.new_cipher->id == TLS1_CK_ECDHE_WITH_SM4_SM3 ){
+        md_ctx = EVP_MD_CTX_new();
         EVP_DigestInit(md_ctx, EVP_sm3());
         EVP_DigestUpdate(md_ctx, (const void *)hdata, hdatalen);
         EVP_DigestFinal(md_ctx, cert_verify_md, (unsigned int *)&hdatalen);
@@ -490,10 +491,11 @@ MSG_PROCESS_RETURN tls_process_cert_verify(SSL *s, PACKET *pkt)
     #ifndef OPENSSL_NO_CNSM
     
     
-    md_ctx = EVP_MD_CTX_new();
+    
     
     
     if(s->s3->tmp.new_cipher->id == TLS1_CK_ECC_WITH_SM4_SM3 || s->s3->tmp.new_cipher->id == TLS1_CK_ECDHE_WITH_SM4_SM3){
+        md_ctx = EVP_MD_CTX_new();
         EVP_DigestInit(md_ctx, EVP_sm3());
         EVP_DigestUpdate(md_ctx, (const void *)hdata, hdatalen);
         EVP_DigestFinal(md_ctx, cert_verify_md, (unsigned int *)&hdatalen);
@@ -1893,6 +1895,9 @@ static void check_for_downgrade(SSL *s, int vers, DOWNGRADE *dgrd)
         *dgrd = DOWNGRADE_TO_1_2;
     } else if (!SSL_IS_DTLS(s)
             && vers < TLS1_2_VERSION
+#ifndef OPENSSL_NO_CNSM
+            && vers != SM1_1_VERSION
+#endif
                /*
                 * We need to ensure that a server that disables TLSv1.2
                 * (creating a hole between TLSv1.3 and TLSv1.1) can still

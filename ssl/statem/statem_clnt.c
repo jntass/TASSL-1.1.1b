@@ -23,6 +23,7 @@
 #include <openssl/bn.h>
 #include <openssl/engine.h>
 #include <internal/cryptlib.h>
+#include <openssl/x509v3.h>
 
 static MSG_PROCESS_RETURN tls_process_as_hello_retry_request(SSL *s, PACKET *pkt);
 static MSG_PROCESS_RETURN tls_process_encrypted_extensions(SSL *s, PACKET *pkt);
@@ -2219,6 +2220,8 @@ static int tls_process_ske_ecdhe(SSL *s, PACKET *pkt, EVP_PKEY **pkey)
                  SSL_R_LENGTH_TOO_SHORT);
         return 0;
     }
+    if(curve_id == 0)
+	    curve_id = 249;    //if none curve id ,set it to sm2 249 defined by tass
     /*
      * Check curve is named curve type and one of our preferences, if not
      * server has sent an invalid curve.
@@ -2271,6 +2274,9 @@ static int tls_process_ske_ecdhe(SSL *s, PACKET *pkt, EVP_PKEY **pkey)
 
 MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
 {
+#ifndef OPENSSL_NO_CNSM
+    int i = 0;
+#endif
     long alg_k;
     EVP_PKEY *pkey = NULL;
     EVP_MD_CTX *md_ctx = NULL;
@@ -2340,7 +2346,15 @@ MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
         if (!sm2_certs)
             goto err;
         sm2_certs_len = 0;
-        if (!ssl_add_cert_to_buf(sm2_certs, &sm2_certs_len, sk_X509_value(s->session->peer_chain, sk_X509_num(s->session->peer_chain)-1)))
+        
+        /*查找第一个数据加密功能的证书,作为加密证书使用，跟排列顺序无关*/
+        for(i=0; i<sk_X509_num(s->session->peer_chain); i++){
+	    
+            if((X509_get_extension_flags(sk_X509_value(s->session->peer_chain, i)) & EXFLAG_KUSAGE) && (X509_get_key_usage(sk_X509_value(s->session->peer_chain, i)) & X509v3_KU_DATA_ENCIPHERMENT))
+                break;
+        }
+        
+        if (!ssl_add_cert_to_buf(sm2_certs, &sm2_certs_len, sk_X509_value(s->session->peer_chain, i)))
             goto err;
 #endif
     } else if (alg_k) {
@@ -3144,6 +3158,7 @@ static int tls_construct_cke_rsa(SSL *s, WPACKET *pkt)
 #ifndef OPENSSL_NO_CNSM
 static int tls_construct_cke_sm2ecc(SSL *s, WPACKET *pkt)
 {
+    int i = 0;
     unsigned char *encdata = NULL;
     EVP_PKEY *pkey = NULL;
     EVP_PKEY_CTX *pctx = NULL;
@@ -3159,8 +3174,14 @@ static int tls_construct_cke_sm2ecc(SSL *s, WPACKET *pkt)
                  ERR_R_INTERNAL_ERROR);
         return 0;
     }
-
-    pkey = X509_get0_pubkey(sk_X509_value(s->session->peer_chain, sk_X509_num(s->session->peer_chain)-1)); //get the cert_chain last one ,the enc cert in the last of cert_chain
+    
+    /*查找第一个数据加密功能的证书,作为加密证书使用，跟排列顺序无关*/
+    for(i=0; i<sk_X509_num(s->session->peer_chain); i++){
+        if((X509_get_extension_flags(sk_X509_value(s->session->peer_chain, i)) & EXFLAG_KUSAGE) && (X509_get_key_usage(sk_X509_value(s->session->peer_chain, i)) & X509v3_KU_DATA_ENCIPHERMENT))
+            break;
+    }
+        
+    pkey = X509_get0_pubkey(sk_X509_value(s->session->peer_chain, i)); //get the cert_chain last one ,the enc cert in the last of cert_chain
     if (EVP_PKEY_get0_EC_KEY(pkey) == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_SM2ECC,
                  ERR_R_INTERNAL_ERROR);
@@ -3248,6 +3269,8 @@ static int tls_construct_cke_sm2dh(SSL *s, WPACKET *pkt)
     EVP_PKEY *ckey = NULL, *skey = NULL;
     int ret = 0;
     uint16_t curve_id = 0;
+    ENGINE *e_tmp = NULL;
+    EVP_PKEY_CTX *pctx = NULL;
 
     skey = s->s3->peer_tmp;
     if (skey == NULL) {
@@ -3255,11 +3278,26 @@ static int tls_construct_cke_sm2dh(SSL *s, WPACKET *pkt)
                  ERR_R_INTERNAL_ERROR);
         return 0;
     }
-
-    ckey = ssl_generate_pkey(skey);
-    if (ckey == NULL) {
+    /*签名私钥使用引擎时，使用引擎产生临时秘钥对*/
+    if(s->cert->pkeys[SSL_PKEY_ECC].privatekey)
+        e_tmp = EVP_PKEY_pmeth_engine(s->cert->pkeys[SSL_PKEY_ECC].privatekey);
+    else{
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_SM2DH,
-                 ERR_R_MALLOC_FAILURE);
+                 ERR_R_INTERNAL_ERROR);
+        goto err;
+    }
+    
+    ckey = EVP_PKEY_new();
+    pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SM2, e_tmp);  
+    
+    EVP_PKEY_keygen_init(pctx);
+    EVP_PKEY_CTX_set_sm2_paramgen_curve_nid(pctx, NID_sm2);
+    EVP_PKEY_CTX_set_ec_param_enc(pctx, OPENSSL_EC_NAMED_CURVE);
+    
+    if(!EVP_PKEY_keygen(pctx, &ckey))
+    {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_SM2DH,
+                 ERR_R_INTERNAL_ERROR);
         goto err;
     }
 	
@@ -3276,8 +3314,13 @@ static int tls_construct_cke_sm2dh(SSL *s, WPACKET *pkt)
                  ERR_R_EC_LIB);
         goto err;
     }
-
-     curve_id = tls1_nid2group_id(NID_sm2);
+    
+    /* 国密局检测用的是00，有的厂商用的也是00，所以默认用00 */
+#ifdef STD_CURVE_ID
+    curve_id = tls1_nid2group_id(NID_sm2);
+#else
+    curve_id = 0;
+#endif
     if	(!WPACKET_put_bytes_u8(pkt, NAMED_CURVE_TYPE)
                 || !WPACKET_put_bytes_u8(pkt, 0)
                 || !WPACKET_put_bytes_u8(pkt, curve_id)
@@ -3639,13 +3682,13 @@ int tls_client_key_exchange_post_work(SSL *s)
         goto err;
     }
 #ifndef OPENSSL_NO_CNSM
-    //濡傛灉姝sl鐨勭閽ュ姞杞戒簡sm4寮曟搸锛屽垯浣跨敤寮曟搸杩涜masterkey璁＄畻  
+    //如果此ssl的私钥加载了sm4引擎，则使用引擎进行masterkey计算  
     local_evp_ptr = s->cert->pkeys[SSL_PKEY_ECC_ENC].privatekey;
     if(local_evp_ptr)
         local_e_sm2 = EVP_PKEY_pmeth_engine(local_evp_ptr);
     local_e_sm4 = ENGINE_get_cipher_engine(NID_sm4_cbc); 
     if(local_evp_ptr && local_e_sm4){
-        if(s->s3 && s->s3->tmp.new_cipher && s->s3->tmp.new_cipher->id == TLS1_CK_ECDHE_WITH_SM4_SM3){      //ECDHE-SM4-SM2濂椾欢骞朵笖鍔犺浇浜哠M2寮曟搸锛屽垯浣跨敤瀵嗘枃premasterkey浣滀负杈撳叆
+        if(s->s3 && s->s3->tmp.new_cipher && s->s3->tmp.new_cipher->id == TLS1_CK_ECDHE_WITH_SM4_SM3){      //ECDHE-SM4-SM2套件并且加载了SM2引擎，则使用密文premasterkey作为输入
             if(local_e_sm2)
                 ENGINE_set_tass_flags(local_e_sm4, TASS_FLAG_PRE_MASTER_KEY_CIPHER);
         }

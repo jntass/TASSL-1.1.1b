@@ -3119,7 +3119,7 @@ EC_GROUP *EC_GROUP_new_by_curve_name(int nid)
     size_t i;
     EC_GROUP *ret = NULL;
 
-    if (nid <= 0)
+    if (nid < 0)
         return NULL;
 
     for (i = 0; i < curve_list_length; i++)

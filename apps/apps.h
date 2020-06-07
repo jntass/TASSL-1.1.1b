@@ -594,6 +594,10 @@ void store_setup_crl_download(X509_STORE *st);
 # define FORMAT_HTTP     13                     /* Download using HTTP */
 # define FORMAT_NSS      14                     /* NSS keylog format */
 
+#ifndef OPENSSL_NO_CNSM
+# define FORMAT_BASE64_GM009_7_4     20         /* GM009-2014 7.4 sm2 base64 format */
+#endif
+
 # define EXT_COPY_NONE   0
 # define EXT_COPY_ADD    1
 # define EXT_COPY_ALL    2
