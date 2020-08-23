@@ -23,14 +23,14 @@ OpenSSL是一套件开放源代码的安全套接字密码学基础库，囊括�
 ### (三)TASSL使用说明
 1. 目前开源的版本是基于OpenSSL 1.1.1b  26 Feb 2019版本；
 
-2.	下载tassl-1.1.1b_v0.8版本。
-下载地址：https://github.com/jntass/TASSL-1.1.1b/archive/v0.8.tar.gz
+2.	下载tassl-1.1.1b_v1.4版本。
+下载地址：https://github.com/jntass/TASSL-1.1.1b/archive/V_1.4.tar.gz
 
 3.	上传至编译环境，进行解压编译。
 
-    tar xvf TASSL-1.1.1b-0.8.tar.gz
+    tar xvf TASSL-1.1.1b-1.4.tar.gz
 
-    cd TASSL-1.1.1b-0.8
+    cd TASSL-1.1.1b-1.4
 
     chmod u+x ./config
 
