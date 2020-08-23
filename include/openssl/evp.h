@@ -189,6 +189,12 @@ void EVP_CIPHER_meth_free(EVP_CIPHER *cipher);
 int EVP_CIPHER_meth_set_iv_length(EVP_CIPHER *cipher, int iv_len);
 int EVP_CIPHER_meth_set_flags(EVP_CIPHER *cipher, unsigned long flags);
 int EVP_CIPHER_meth_set_impl_ctx_size(EVP_CIPHER *cipher, int ctx_size);
+#ifndef OPENSSL_NO_CNSM
+int EVP_CIPHER_meth_set_keygen(EVP_CIPHER *cipher,
+                             int (*keygen) (EVP_CIPHER_CTX *ctx,
+                                          const unsigned char *key,
+                                          const unsigned char *index));
+#endif
 int EVP_CIPHER_meth_set_init(EVP_CIPHER *cipher,
                              int (*init) (EVP_CIPHER_CTX *ctx,
                                           const unsigned char *key,
@@ -605,6 +611,10 @@ __owur int EVP_DecryptFinal(EVP_CIPHER_CTX *ctx, unsigned char *outm,
 /*__owur*/ int EVP_DecryptFinal_ex(EVP_CIPHER_CTX *ctx, unsigned char *outm,
                                    int *outl);
 
+#ifndef OPENSSL_NO_CNSM
+__owur int EVP_CipherKeygen(EVP_CIPHER_CTX *ctx, ENGINE *impl, int nid,
+                            const unsigned char *key, const unsigned char *index);
+#endif
 __owur int EVP_CipherInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,
                           const unsigned char *key, const unsigned char *iv,
                           int enc);

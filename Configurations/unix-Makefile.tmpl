@@ -477,6 +477,17 @@ install_tass:
 	sed -i '1i\INC_DIR=$(INSTALLTOP)/include' $(CRYPTO_MK_FILE).sh
 	sed -i '1i\LIB_DIR=$(INSTALLTOP)/lib'     $(CRYPTO_MK_FILE).sh
 	sed -i '1i\#!/bin/sh'                     $(CRYPTO_MK_FILE).sh
+	
+	echo ${INSTALLTOP}/lib > ${INSTALLTOP}/bin/tassl.conf
+	cp ${INSTALLTOP}/bin/tassl.conf /etc/ld.so.conf.d
+	ldconfig 
+
+	echo  'cp ${INSTALLTOP}/bin/tassl.conf /etc/ld.so.conf.d' >${INSTALLTOP}/bin/tass_init.sh
+	echo 'ldconfig' >>${INSTALLTOP}/bin/tass_init.sh
+	chmod u+x ${INSTALLTOP}/bin/tass_init.sh
+
+	echo 'export LD_LIBRARY_PATH=${INSTALLTOP}/lib:$$LD_LIBRARY_PATH' >${INSTALLTOP}/bin/setting
+
 
 install_ssldirs:
 	@$(PERL) $(SRCDIR)/util/mkdir-p.pl $(DESTDIR)$(OPENSSLDIR)/certs

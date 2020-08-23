@@ -85,7 +85,7 @@ static int do_sigver_init(EVP_MD_CTX *ctx, EVP_PKEY_CTX **pctx,
 #ifndef OPENSSL_NO_CNSM
     if (ctx->pctx->pkey->type == EVP_PKEY_EC)
     {
-        if (EC_GROUP_get_curve_name(EC_KEY_get0_group(ctx->pctx->pkey->pkey.ec)) == NID_sm2)
+        if (EC_GROUP_get_curve_name(EC_KEY_get0_group(ctx->pctx->pkey->pkey.ec)) == NID_sm2 && !(EC_KEY_get_flags(ctx->pctx->pkey->pkey.ec) & EC_FLAG_TASS_NO_Z_SIGN))
         {
             /*Need Set SM2 Sign And Verify Extra Data: Add Message Z*/
             unsigned char ex_dgst[EVP_MAX_MD_SIZE];

@@ -2220,7 +2220,8 @@ static int tls_process_ske_ecdhe(SSL *s, PACKET *pkt, EVP_PKEY **pkey)
                  SSL_R_LENGTH_TOO_SHORT);
         return 0;
     }
-    if(curve_id == 0)
+    //At present, because there is no definite explanation, when the protocol is CNTLS, the default 249 will be used as sm2 curve ID
+    if( s->version == SM1_1_VERSION && curve_id != 249)
 	    curve_id = 249;    //if none curve id ,set it to sm2 249 defined by tass
     /*
      * Check curve is named curve type and one of our preferences, if not
@@ -2347,9 +2348,8 @@ MSG_PROCESS_RETURN tls_process_key_exchange(SSL *s, PACKET *pkt)
             goto err;
         sm2_certs_len = 0;
         
-        /*查找第一个数据加密功能的证书,作为加密证书使用，跟排列顺序无关*/
-        for(i=0; i<sk_X509_num(s->session->peer_chain); i++){
-	    
+        /*从链表最后开始，查找第一个数据加密功能的证书,作为加密证书使用，跟排列顺序无关*/
+        for(i=sk_X509_num(s->session->peer_chain)-1; i>=0; i--){
             if((X509_get_extension_flags(sk_X509_value(s->session->peer_chain, i)) & EXFLAG_KUSAGE) && (X509_get_key_usage(sk_X509_value(s->session->peer_chain, i)) & X509v3_KU_DATA_ENCIPHERMENT))
                 break;
         }
@@ -3175,8 +3175,8 @@ static int tls_construct_cke_sm2ecc(SSL *s, WPACKET *pkt)
         return 0;
     }
     
-    /*查找第一个数据加密功能的证书,作为加密证书使用，跟排列顺序无关*/
-    for(i=0; i<sk_X509_num(s->session->peer_chain); i++){
+    /*从链表最后开始，查找第一个数据加密功能的证书,作为加密证书使用，跟排列顺序无关*/
+    for(i=sk_X509_num(s->session->peer_chain)-1; i>=0; i--){
         if((X509_get_extension_flags(sk_X509_value(s->session->peer_chain, i)) & EXFLAG_KUSAGE) && (X509_get_key_usage(sk_X509_value(s->session->peer_chain, i)) & X509v3_KU_DATA_ENCIPHERMENT))
             break;
     }
@@ -3229,13 +3229,23 @@ static int tls_construct_cke_sm2ecc(SSL *s, WPACKET *pkt)
                  ERR_R_EVP_LIB);
         goto err;
     }
-    	
+    
+   /*	
     if (!WPACKET_allocate_bytes(pkt, enclen, &encdata)
             || EVP_PKEY_encrypt(pctx, encdata, &enclen, pms, pmslen) <= 0) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_SM2ECC,
                  SSL_R_BAD_RSA_ENCRYPT);
         goto err;
+    }*/
+    if (!WPACKET_reserve_bytes(pkt, enclen, &encdata)
+            || EVP_PKEY_encrypt(pctx, encdata, &enclen, pms, pmslen) <= 0) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_SM2ECC,
+                 SSL_R_BAD_RSA_ENCRYPT);
+        goto err;
     }
+    pkt->written += enclen;   //签名时分配的字节数为最大的022100，所以真正签名完成时要设置真实数值，因为有的服务端不认后面带00的加密密文
+    pkt->curr += enclen;
+    
     EVP_PKEY_CTX_free(pctx);
     pctx = NULL;
 

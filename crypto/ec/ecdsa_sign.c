@@ -36,10 +36,13 @@ int ECDSA_sign(int type, const unsigned char *dgst, int dlen, unsigned char
                *sig, unsigned int *siglen, EC_KEY *eckey)
 {
 #ifndef OPENSSL_NO_CNSM
-
-    if (EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey)) == NID_sm2)
-        return  sm2_sign(dgst, dlen, sig, siglen, eckey);
-#endif	
+    if (EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey)) == NID_sm2){
+        if ((EC_KEY_get_flags(eckey) & EC_FLAG_TASS_CUSTOM_SIGN) &&  eckey->meth->sign != NULL)
+            return eckey->meth->sign(type, dgst, dlen, sig, siglen, NULL, NULL, eckey);
+        else
+            return  sm2_sign(dgst, dlen, sig, siglen, eckey);
+    }
+#endif
         return ECDSA_sign_ex(type, dgst, dlen, sig, siglen, NULL, NULL, eckey);
 }
 

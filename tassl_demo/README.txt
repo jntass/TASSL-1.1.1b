@@ -1,8 +1,16 @@
+20200823_V_1.4:
+1.修改查找加密证书逻辑：从证书链的最后一个开始查找,找到第一个带有数据加密功能的证书后，作为加密证书。
+2.修改client_key_exchange时，签名时分配的字节数为最大的022100，所以真正签名完成时要设置真实数值，因为有的服务端不认后面带00的加密密文。
+
 20200526_V_1.3:
 1:优化取加密证书的逻辑，在证书栈中查找第一个具有数据加密的用途的证书作为加密证书。
 2:屏蔽掉当国密版本为0x0101时，不要进行downgrade，防止ssl_fill_hello_random()随机数的最后8字节被填充为固定值。
 3:默认的sm2 curve_id为00， 如果用249则条件编译 -DSTD_CURVE_ID; 默认的sm2秘钥协商用ZB+ZA的顺序，如果需要颠倒，条件编译-DSTD_ZAZB.
 4.修改tls_construct_cke_sm2dh()中，使用签名私钥的引擎来产生临时秘钥对，如果不存在，则使用软算法产生。
+5.增加ECDSA_sign中当eckey存在sign方法，且设置了EC_FLAG_TASS_CUSTOM_SIGN标志后，调用eckey中的方法。
+6.增加支持SSL握手时进行裸签标志，EC_FLAG_TASS_NO_Z_SIGN,通过EC_KEY_set_flags()设置。
+7.openssl sm4-cbc支持通过-K 40指定使用tasscard_sm4引擎进行加解密通过40号索引的秘钥。
+8.增加card_engine 目录，提供调用卡的例子。
 
 20200328_V_1.2:
 1:调整变量声明位置，支持Windows下64位编译。

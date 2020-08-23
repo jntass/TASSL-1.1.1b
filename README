@@ -93,4 +93,4 @@
  cryptographic code.
 
 
- ./Configure  linux-x86_64 --prefix=/root/tasshsm_engine/tassl --shared 
+ ./Configure  linux-x86_64 --prefix=/root/tasscard_engine/tassl --shared 

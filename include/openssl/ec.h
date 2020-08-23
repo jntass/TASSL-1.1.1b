@@ -818,9 +818,11 @@ int ECPKParameters_print_fp(FILE *fp, const EC_GROUP *x, int off);
 # define EC_FLAG_FIPS_CHECKED    0x2
 # define EC_FLAG_COFACTOR_ECDH   0x1000
 #ifndef OPENSSL_NO_CNSM
-# define EC_FLAG_TASSHSM_ENGINE            0x10000
-# define EC_FLAG_TASSHSMRSA_ENGINE      0x20000
-# define EC_FLAG_TASSCARD_ENGINE       0x1000000
+# define EC_FLAG_TASSHSM_ENGINE      0x10000
+# define EC_FLAG_TASSHSMRSA_ENGINE   0x20000
+# define EC_FLAG_TASS_CUSTOM_SIGN    0x100000
+# define EC_FLAG_TASS_NO_Z_SIGN      0x200000
+# define EC_FLAG_TASSCARD_ENGINE     0x1000000
 
 #endif
 

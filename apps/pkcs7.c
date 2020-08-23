@@ -525,7 +525,7 @@ int pkcs7_main(int argc, char **argv)
         if(informat == FORMAT_BASE64_GM009_7_4){
             //in_len -= 15;      //jump the header of sequence:30820xxx 3009 06072A811CCF550168  oid:1-2-156-10197-1-104(SM4)
             if(atoi(in_sign_key_index)>=0 && atoi(in_sign_key_index) <=64){
-                printf("do nothing, use the card ENGINE_convert_private_key do all the parse!\n");
+                //printf("do nothing, use the card ENGINE_convert_private_key do all the parse!\n");
             }else{
                 memcpy(t_buf, in_buf+15, 2);        //3079
                 iSymLen = *(unsigned char *)(t_buf+1);      //the t_buf[1] bytes len, like 0x79.
@@ -546,7 +546,7 @@ int pkcs7_main(int argc, char **argv)
                 goto end;
             }
         }
-        if(atoi(in_sign_key_index)>=0 && atoi(in_sign_key_index) <=64){
+        if(in_sign_key_index && atoi(in_sign_key_index)>=0 && atoi(in_sign_key_index) <=64){
             
         }else{
             /* 11111-Parse the ciphered sm4 key by the sm2 sign private key */
@@ -627,7 +627,7 @@ int pkcs7_main(int argc, char **argv)
         
         /* 33333-write the enc key to outfile*/
         if(e){
-            if(atoi(in_enc_key_index)>=0 && atoi(in_enc_key_index) <=64){       //input the enc key index, import the enc key to tasscard 
+            if(in_enc_key_index && atoi(in_enc_key_index)>=0 && atoi(in_enc_key_index) <=64){       //input the enc key index, import the enc key to tasscard 
                 //use the in_buf[in_len] store the in_sign_key_index
                 in_buf[in_len] = atoi(in_sign_key_index);
                 ENGINE_convert_private_key(e, (const char *)in_buf, in_len, NULL, in_enc_key_index);

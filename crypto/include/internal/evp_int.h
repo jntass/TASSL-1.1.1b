@@ -154,6 +154,11 @@ struct evp_cipher_st {
     int (*ctrl) (EVP_CIPHER_CTX *, int type, int arg, void *ptr);
     /* Application data */
     void *app_data;
+#ifndef OPENSSL_NO_CNSM
+    /* init key */
+    int (*keygen) (EVP_CIPHER_CTX *ctx, const unsigned char *key,
+                 const unsigned char *index);
+#endif
 } /* EVP_CIPHER */ ;
 
 /* Macros to code block cipher wrappers */

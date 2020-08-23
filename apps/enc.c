@@ -70,7 +70,7 @@ const OPTIONS enc_options[] = {
     {"bufsize", OPT_BUFSIZE, 's', "Buffer size"},
     {"k", OPT_K, 's', "Passphrase"},
     {"kfile", OPT_KFILE, '<', "Read passphrase from file"},
-    {"K", OPT_UPPER_K, 's', "Raw key, in hex"},
+    {"K", OPT_UPPER_K, 's', "Raw key, in hex.If use -engine tasscard_sm4,this is key index in decimal format"},
     {"S", OPT_UPPER_S, 's', "Salt, in hex"},
     {"iv", OPT_IV, 's', "IV in hex"},
     {"md", OPT_MD, 's', "Use specified digest to create a key from the passphrase"},
@@ -534,7 +534,7 @@ int enc_main(int argc, char **argv)
 
         BIO_get_cipher_ctx(benc, &ctx);
 
-        if (!EVP_CipherInit_ex(ctx, cipher, NULL, NULL, NULL, enc)) {
+        if (!EVP_CipherInit_ex(ctx, cipher, e, NULL, NULL, enc)) {
             BIO_printf(bio_err, "Error setting cipher %s\n",
                        EVP_CIPHER_name(cipher));
             ERR_print_errors(bio_err);
@@ -655,7 +655,8 @@ static int set_hex(const char *in, unsigned char *out, int size)
         BIO_printf(bio_err, "hex string is too long, ignoring excess\n");
         n = i; /* ignore exceeding part */
     } else if (n < i) {
-        BIO_printf(bio_err, "hex string is too short, padding with zero bytes to length\n");
+        if(n != 2)
+            BIO_printf(bio_err, "hex string is too short, padding with zero bytes to length\n");
     }
 
     memset(out, 0, size);

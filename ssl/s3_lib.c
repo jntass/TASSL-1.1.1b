@@ -5036,7 +5036,10 @@ int ssl_derive_SM2(SSL *s, EVP_PKEY *privkey, EVP_PKEY *pubkey,  int gensecret)
     }
     
     /*查找第一个数据加密功能的证书,作为加密证书使用，跟排列顺序无关*/
-    for(i=0; i<sk_X509_num(s->session->peer_chain); i++){
+    //for(i=0; i<sk_X509_num(s->session->peer_chain); i++){
+    
+    /*从链表最后开始，查找第一个数据加密功能的证书,作为加密证书使用，跟排列顺序无关*/
+    for(i=sk_X509_num(s->session->peer_chain)-1; i>=0; i--){
         if((X509_get_extension_flags(sk_X509_value(s->session->peer_chain, i)) & EXFLAG_KUSAGE) && (X509_get_key_usage(sk_X509_value(s->session->peer_chain, i)) & X509v3_KU_DATA_ENCIPHERMENT))
             break;
     }

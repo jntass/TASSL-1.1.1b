@@ -504,6 +504,5 @@ SSL_CTX_use_enc_PrivateKey_file         504	1_1_1b	EXIST::FUNCTION:CNSM
 SSL_CTX_use_enc_PrivateKey              505	1_1_1b	EXIST::FUNCTION:CNSM
 CNTLS_client_method                     506	1_1_1b	EXIST::FUNCTION:CNSM
 SSL_set_s3_tmp_pms                      507	1_1_1b	EXIST::FUNCTION:CNSM
-SSL_CTX_use_enc_certificate_chain_file  508	1_1_1b	EXIST::FUNCTION:CNSM
+SSL_CTX_use_enc_certificate             508	1_1_1b	EXIST::FUNCTION:CNSM
 SSL_CTX_use_enc_certificate_file        509	1_1_1b	EXIST::FUNCTION:CNSM
-SSL_CTX_use_enc_certificate             510	1_1_1b	EXIST::FUNCTION:CNSM

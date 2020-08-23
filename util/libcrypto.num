@@ -4606,3 +4606,5 @@ ENGINE_set_tass_flags                   4559	1_1_1b	EXIST::FUNCTION:CNSM,ENGINE
 ENGINE_get_tass_flags                   4560	1_1_1b	EXIST::FUNCTION:CNSM,ENGINE
 ENGINE_convert_private_key              4561	1_1_1b	EXIST::FUNCTION:CNSM,ENGINE
 ENGINE_set_convert_privkey_function     4562	1_1_1b	EXIST::FUNCTION:CNSM,ENGINE
+EVP_CIPHER_meth_set_keygen              4563	1_1_1b	EXIST::FUNCTION:CNSM
+EVP_CipherKeygen                        4564	1_1_1b	EXIST::FUNCTION:CNSM

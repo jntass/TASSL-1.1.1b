@@ -48,6 +48,25 @@ void EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx)
     OPENSSL_free(ctx);
 }
 
+#ifndef OPENSSL_NO_CNSM
+int EVP_CipherKeygen(EVP_CIPHER_CTX *ctx, ENGINE *impl, int nid, const unsigned char *key, const unsigned char *index)
+{
+    const EVP_CIPHER *ret;
+    if(impl){
+        ENGINE_CIPHERS_PTR fn = NULL;
+        fn = ENGINE_get_ciphers(impl);
+        if(fn){
+            fn(impl, &ret, NULL, nid);
+            if(ret)
+                return ret->keygen(ctx, key, index);
+        }else
+            return 1;
+    }
+    else
+        return 1;
+}
+#endif
+
 int EVP_CipherInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,
                    const unsigned char *key, const unsigned char *iv, int enc)
 {

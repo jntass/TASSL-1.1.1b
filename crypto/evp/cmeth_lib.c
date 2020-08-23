@@ -58,6 +58,17 @@ int EVP_CIPHER_meth_set_impl_ctx_size(EVP_CIPHER *cipher, int ctx_size)
     return 1;
 }
 
+#ifndef OPENSSL_NO_CNSM
+int EVP_CIPHER_meth_set_keygen(EVP_CIPHER *cipher,
+                             int (*keygen) (EVP_CIPHER_CTX *ctx, 
+                                          const unsigned char *key,
+                                          const unsigned char *index))
+{
+    cipher->keygen = keygen;
+    return 1;
+}
+#endif
+
 int EVP_CIPHER_meth_set_init(EVP_CIPHER *cipher,
                              int (*init) (EVP_CIPHER_CTX *ctx,
                                           const unsigned char *key,
