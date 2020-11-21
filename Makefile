@@ -283,7 +283,7 @@ install_tass:
         PWD2=`cd ${INSTALLTOP}/../tassl; pwd`;\
         if [ "$$PWD1" != "$$PWD2" ]; then rm -rf $(INSTALLTOP)/../tassl; ln -fs $(INSTALLTOP) $(INSTALLTOP)/../tassl; fi;
 	rm -rf $(GEN_SM2_CERT_FILE).sh
-	cp -R tassl_demo/ $(INSTALLTOP)/
+	cp -R tassl_demo $(INSTALLTOP)/
 	mv $(GEN_SM2_CERT_FILE).tmpl $(GEN_SM2_CERT_FILE).sh
 	mv $(SSL_MK_FILE).tmpl $(SSL_MK_FILE).sh
 	mv $(CRYPTO_MK_FILE).tmpl $(CRYPTO_MK_FILE).sh
