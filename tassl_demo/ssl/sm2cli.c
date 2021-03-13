@@ -1,6 +1,16 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "openssl/bio.h"
+#include "openssl/err.h"
+#include "openssl/rand.h"
+#include "openssl/ssl.h"
+#include "openssl/x509v3.h"
+
+#ifdef _WIN32
+
+#else
 #include <strings.h>
 #include <errno.h>
 #include <netdb.h>
@@ -11,11 +21,7 @@
 #include <sys/select.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "openssl/bio.h"
-#include "openssl/err.h"
-#include "openssl/rand.h"
-#include "openssl/ssl.h"
-#include "openssl/x509v3.h"
+#endif
 
 #define MAX_BUF_LEN 4096
 #define CLIENT_S_CERT   "../cert/certs/CS.pem"
@@ -173,10 +179,10 @@ int main(int argc, char **argv)
 		}
 	}
 	
-	for(i=0; i<MAX_BUF_LEN; i++){
-
-		sprintf(sendbuf+i, "%d", i%10);
-	}
+	//for(i=0; i<MAX_BUF_LEN; i++){
+	//
+	//	sprintf(sendbuf+i, "%d", i%10);
+	//}
 
 	while(1){
 
