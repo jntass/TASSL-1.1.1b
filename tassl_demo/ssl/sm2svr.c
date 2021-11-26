@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ++
  * FACILITY:
  *
@@ -15,6 +15,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+
+#include "openssl/crypto.h"
+#include "openssl/ssl.h"
+#include "openssl/err.h"
+#include "openssl/evp.h"
+
+#ifdef _WIN32
+
+#include <WS2tcpip.h>
+
+#define strcasecmp _stricmp
+#define close closesocket
+
+#else
 #include <strings.h>
 #include <errno.h>
 #include <netdb.h>
@@ -26,10 +41,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "openssl/crypto.h"
-#include "openssl/ssl.h"
-#include "openssl/err.h"
-#include "openssl/evp.h"
+#define SOCKET int
+#endif
 
 #define MAX_BUF_LEN 4096
 #define SM2_SERVER_CERT     "../cert/certs/SS.pem"
@@ -86,12 +99,12 @@ int main(int argc, char **argv)
 	int     err;
 	int     verify_client = OFF; /* To verify a client certificate, set ON */
 
-	int     listen_sock;
-	int     sock;
+	SOCKET     listen_sock;
+	SOCKET     sock;
 	struct sockaddr_in sa_serv;
 	struct sockaddr_in sa_cli;
 	size_t client_len;
-	char    *str;
+
 	char buf[MAX_BUF_LEN];
 	char tmpbuf[64] = {0};
 
@@ -214,7 +227,14 @@ int main(int argc, char **argv)
 	}
 	/* ----------------------------------------------- */
 	/* Set up a TCP socket */
-	listen_sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);   
+#ifdef _WIN32
+	{
+		WSADATA wsaData = { 0 };
+		WSAStartup(MAKEWORD(2, 2), &wsaData);
+	}
+#endif
+
+	listen_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);   
 
 	setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, ( void *)&opt, sizeof(opt));
 	RETURN_ERR(listen_sock, "socket");
