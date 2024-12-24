@@ -1,0 +1,4 @@
+<1> 2020-06-01T04:17:38.948-0400 [thread-140737354057536] [tass_pcie_cmd_run_manage]: read command [000D1101] head32[2] is [210000fa]
+<1> 2020-06-01T04:17:38.948-0400 [thread-140737354057536] [tass_pcie_cmd_run_manage]: trace [write content] length 28
+22 22 22 22 00 00 00 00   01 11 0d 00 0c 00 00 00 
+00 00 00 00 00 00 00 00   00 00 00 00 

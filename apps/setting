@@ -1,0 +1,1 @@
+export LD_LIBRARY_PATH=/root/src/tassl-1.1.1b-v1.2:
